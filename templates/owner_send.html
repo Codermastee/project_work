@@ -1,0 +1,270 @@
+<html>
+<head>
+<title>GeneNFT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,#eef2f7,#e3ecff);
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+    position:fixed;
+    width:230px;
+    height:100%;
+    background:linear-gradient(180deg,#0f4c81,#1e6fd9,#2c9cff);
+    color:white;
+    padding-top:25px;
+}
+.sidebar h2{
+    text-align:center;
+    margin-bottom:40px;
+    font-weight:600;
+}
+.sidebar a{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:white;
+    padding:14px 25px;
+    text-decoration:none;
+    transition:0.3s;
+    font-size:14px;
+}
+.sidebar a:hover{
+    background:rgba(255,255,255,0.15);
+    padding-left:35px;
+    border-left:4px solid white;
+}
+
+/* ===== TOPBAR ===== */
+.topbar{
+    position:fixed;
+    left:230px;
+    right:0;
+    height:70px;
+    background:white;
+    display:flex;
+    align-items:center;
+    padding:0 30px;
+    box-shadow:0 3px 15px rgba(0,0,0,0.08);
+    font-weight:600;
+    color:#2c3e50;
+}
+
+/* ===== MAIN ===== */
+.main{
+    margin-left:230px;
+    padding:120px 30px 40px;
+}
+
+/* ===== CARD ===== */
+.card{
+    background:white;
+    border-radius:16px;
+    padding:30px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    border-top:4px solid #2c9cff;
+    transition:0.3s;
+}
+.card:hover{
+    transform:translateY(-5px);
+    box-shadow:0 15px 35px rgba(0,0,0,0.15);
+}
+
+/* ===== BUTTON ===== */
+.btn-small{
+    background:linear-gradient(90deg,#1e6fd9,#2c9cff);
+    color:white;
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    font-size:14px;
+    cursor:pointer;
+    transition:0.3s;
+}
+.btn-small:hover{
+    background:linear-gradient(90deg,#0f4c81,#1e6fd9);
+    transform:translateY(-2px);
+}
+
+/* ===== KEY BOX ===== */
+.key-box{
+    display:none;
+    padding:14px;
+    margin:14px 0;
+    border-radius:10px;
+    background:#f4f9ff;
+    border-left:5px solid #2c9cff;
+    font-family:monospace;
+    font-size:13px;
+    word-break:break-all;
+    box-shadow:0 3px 8px rgba(0,0,0,0.05);
+}
+
+/* ===== VIEW SECTION ===== */
+.view-section{
+    display:block;
+    margin-top:25px;
+}
+
+input, select{
+    padding:8px 12px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    font-family:'Poppins';
+    font-size:13px;
+}
+
+input:focus, select:focus{
+    border-color:#2c9cff;
+    outline:none;
+    box-shadow:0 0 0 3px rgba(44,156,255,0.15);
+}
+/* SECTION TITLE */
+.section-title{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:20px;
+    color:#2c3e50;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+/* PAYMENT BOX */
+.payment-box{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+/* INPUT GROUP */
+.input-group{
+    display:flex;
+    flex-direction:column;
+}
+
+.input-group label{
+    font-size:13px;
+    margin-bottom:5px;
+    color:#555;
+}
+
+.input-group input{
+    width:250px;
+    height:38px;
+    padding:0 12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-size:14px;
+    transition:0.3s;
+}
+
+.input-group input:focus{
+    border-color:#2c9cff;
+    box-shadow:0 0 0 3px rgba(44,156,255,0.15);
+    outline:none;
+}
+
+/* PAY BUTTON */
+.btn-pay{
+    height:38px;
+    padding:0 22px;
+    border:none;
+    border-radius:8px;
+    background:linear-gradient(90deg,#16a34a,#22c55e);
+    color:white;
+    font-size:14px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn-pay:hover{
+    background:linear-gradient(90deg,#15803d,#16a34a);
+    transform:translateY(-2px);
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+    .payment-box{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .input-group input{
+        width:100%;
+    }
+
+    .btn-pay{
+        width:100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2><i class="fa fa-dna"></i> GeneNFT</h2>
+ <a href="/owner_home"><i class="fa fa-chart-line"></i> Dashboard</a>
+	<a href="/owner_key"><i class="fa fa-key"></i> Key Management</a>
+    <a href="/owner_upload"><i class="fa fa-upload"></i> Upload Genome</a>
+    <a href="/owner_files"><i class="fa fa-folder-open"></i> My Uploads</a>
+	<a href="/owner_requests"><i class="fa fa-coins"></i> Data Requests</a>
+    <!--<a href="/owner_earn"><i class="fa fa-coins"></i> Earnings</a>-->
+    <a href="/owner_block"><i class="fa fa-shield-alt"></i> Integrity Verification</a>
+    <a href="/logout"><i class="fa fa-sign-out-alt"></i> Logout</a>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <i class="fa fa-key"></i> &nbsp; Analysis Data
+</div>
+
+<div class="main">
+
+    <div id="viewSection" class="card view-section">
+        <h4 class="section-title">
+            <i class="fa fa-credit-card"></i> Extracted VCF File
+        </h4>
+{% if msg=="success" %}
+<span style="color:#009933">File has Decrypted and Sent..</span>
+<script>
+//Using setTimeout to execute a function after 5 seconds.
+setTimeout(function () {
+   //Redirect with JavaScript
+   window.location.href= '/owner_requests';
+}, 2000);
+</script>
+{% endif %}
+{% if msg=="wrong" %}
+<span style="color:#FF0000">Wrong Key!</span>
+
+{% endif %}
+<form name="form1" method="post">
+        <div class="payment-box">
+            <div class="input-group">
+                <label>Private Key Node</label>
+                <input type="password" name="key" id="key" placeholder="" required>
+            </div>
+
+            <button class="btn-pay">
+                <i class="fa fa-paper-plane"></i> Send
+            </button>
+        </div>
+</form>
+    </div>
+
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Data Owner Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+
+<style>
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#f4f7fb;
+}
+
+/* Sidebar */
+.sidebar{
+    position:fixed;
+    width:230px;
+    height:100%;
+    background: linear-gradient(180deg, #0f2027, #203a43, #2c5364);
+    color:white;
+    padding-top:20px;
+}
+
+.sidebar h2{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    padding:14px 25px;
+    text-decoration:none;
+    transition:.3s;
+}
+
+.sidebar a:hover{
+    background: rgba(0,180,255,0.25);
+    padding-left:35px;
+}
+
+/* Main */
+.main{
+    margin-left:230px;
+    padding:30px;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:10px;
+    margin-bottom:20px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+.btn{
+    padding:8px 14px;
+    border:none;
+    background:#2c9cff;
+    color:white;
+    border-radius:6px;
+    text-decoration:none;
+}
+
+.table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.table th,.table td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>GeneNFT</h2>
+    <a href="/data_owner_dashboard">Dashboard</a>
+    <a href="/upload_dataset">Upload Genome</a>
+    <a href="/view_requests">Research Requests</a>
+    <a href="/earnings">Earnings</a>
+    <a href="/logout">Logout</a>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+
+    <h3>Welcome, {{ owner_name }}</h3>
+
+    <!-- Dataset Section -->
+    <div class="card">
+        <h4>Your Genome Datasets</h4>
+
+        <table class="table">
+            <tr>
+                <th>Dataset ID</th>
+                <th>Title</th>
+                <th>Disease</th>
+                <th>Price</th>
+                <th>IPFS CID</th>
+            </tr>
+
+            {% for d in datasets %}
+            <tr>
+                <td>{{ d.id }}</td>
+                <td>{{ d.title }}</td>
+                <td>{{ d.disease }}</td>
+                <td>{{ d.price }}</td>
+                <td>{{ d.cid }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

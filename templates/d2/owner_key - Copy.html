@@ -1,0 +1,176 @@
+<html>
+<head>
+<title>Owner Key Panel</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+    background:linear-gradient(135deg,#eef5ff,#f8fbff);
+    font-family: 'Poppins', sans-serif;
+}
+
+.card-box{
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    margin-top:40px;
+}
+
+.key-box{
+    display:none;
+    padding:12px;
+    margin:15px 0;
+    border-radius:8px;
+    background:#f4f8ff;
+    border-left:4px solid #4a6cf7;
+    word-break:break-all;
+}
+
+.master-box{
+    display:none;
+    padding:15px;
+    margin-top:20px;
+    border-radius:8px;
+    background:#e9f7ef;
+    border-left:5px solid #28a745;
+    font-weight:bold;
+}
+
+.view-section{
+    display:none;
+    margin-top:40px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="card-box text-center">
+
+<h3>Generate Distributed Key</h3>
+
+{% if act != "done" %}
+<form method="post">
+<button type="submit" class="btn btn-primary btn-lg mt-3">
+Generate Key
+</button>
+</form>
+{% endif %}
+
+<div id="pubhash" class="key-box">
+Public Hash: {{ data3.public_hash }}
+</div>
+
+<div id="prhash" class="key-box">
+Private Hash: {{ data3.private_hash }}
+</div>
+
+{% for h in pr_hash %}
+<div id="node{{loop.index}}" class="key-box">
+Node {{loop.index}} Hash: {{ h }}
+</div>
+{% endfor %}
+
+<div id="master" class="master-box">
+Master Key: {{ data3.master_key }}
+</div>
+
+</div>
+
+<div id="viewSection" class="card-box view-section">
+
+<h4>View Key Section</h4>
+
+<select id="keyType" class="form-select mt-3">
+<option value="public">Public Key</option>
+<option value="private">Private Key</option>
+</select>
+
+<input type="text" id="masterInput" class="form-control mt-3" placeholder="Enter Master Key">
+
+<button onclick="viewKey()" class="btn btn-success mt-3">
+View Key
+</button>
+
+<div id="displayArea" class="mt-4"></div>
+
+</div>
+
+</div>
+
+{% if act == "done" %}
+<iframe src="http://iotcloud.co.in/testmail/testmail1.php?message={{mess}}&email={{email}}&subject=Master Key"
+width="1" height="1" style="display:none;"></iframe>
+{% endif %}
+
+<script>
+
+{% if act == "done" %}
+
+let delay = 0;
+
+function showElement(id){
+    setTimeout(()=>{
+        document.getElementById(id).style.display="block";
+    }, delay);
+    delay += 2000;
+}
+
+showElement("pubhash");
+showElement("prhash");
+
+{% for h in pr_hash %}
+showElement("node{{loop.index}}");
+{% endfor %}
+
+showElement("master");
+
+setTimeout(()=>{
+    document.getElementById("viewSection").style.display="block";
+}, delay + 1000);
+
+{% endif %}
+
+function viewKey(){
+
+    let type = document.getElementById("keyType").value;
+    let master = document.getElementById("masterInput").value;
+    let display = document.getElementById("displayArea");
+
+    display.innerHTML = "";
+
+    if(type === "public"){
+        display.innerHTML = "<div class='key-box' style='display:block;'>{{ data3.public_key }}</div>";
+        return;
+    }
+
+    if(master !== "{{ data3.master_key }}"){
+        alert("Incorrect Master Key");
+        return;
+    }
+
+    let nodes = {{ data3.nodes|tojson }};
+    let privateKey = "{{ data3.private_key }}";
+
+    let shuffled = nodes.sort(()=>0.5-Math.random()).slice(0,3);
+
+    let delay = 0;
+
+    shuffled.forEach(node=>{
+        setTimeout(()=>{
+            display.innerHTML += "<div class='key-box' style='display:block;'>Node Share: "+node+"</div>";
+        }, delay);
+        delay += 2000;
+    });
+
+    setTimeout(()=>{
+        display.innerHTML += "<div class='master-box' style='display:block;'>Full Private Key: "+privateKey+"</div>";
+    }, delay);
+}
+
+</script>
+
+</body>
+</html>

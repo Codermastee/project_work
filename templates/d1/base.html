@@ -1,0 +1,148 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>GeneNFT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+body{
+    font-family:'Poppins',sans-serif;
+    background: linear-gradient(135deg,#f8fbff,#e6f2ff,#fdfbff);
+    color:#333;
+}
+/* Navbar */
+.navbar{
+    background: linear-gradient(90deg,#141e30,#243b55);
+}
+.navbar-brand{
+    color:#00f2fe !important;
+    font-weight:700;
+}
+.nav-link{
+    color:white !important;
+    margin-right:15px;
+    padding:8px 15px;
+    border-radius:20px;
+    transition:0.3s;
+}
+.nav-link:hover{
+    background:linear-gradient(90deg,#00f2fe,#4facfe);
+    color:#111 !important;
+}
+/* Card Style */
+.card-box{
+    background:white;
+    border-radius:15px;
+    padding:30px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.05);
+    border:2px solid #e3f2fd;
+}
+/* Buttons */
+.btn-main{
+    background:linear-gradient(90deg,#667eea,#764ba2);
+    color:white;
+    border:none;
+    border-radius:25px;
+}
+.btn-main:hover{
+    background:linear-gradient(90deg,#764ba2,#667eea);
+}
+/* Footer */
+.footer{
+    background:linear-gradient(90deg,#141e30,#243b55);
+    color:white;
+    padding:15px;
+    text-align:center;
+    margin-top:60px;
+}
+/* Common Alert Style */
+.alert{
+    width:100%;
+    border-radius:8px;
+    font-weight:500;
+    letter-spacing:0.3px;
+    border:none;
+    animation:fadeSlide 0.5s ease;
+}
+
+/* Success Alert */
+.alert-success{
+    background:linear-gradient(90deg,#1cc88a,#17a673);
+    color:#fff;
+    box-shadow:0 4px 12px rgba(28,200,138,0.4);
+}
+
+/* Error Alert */
+.alert-danger{
+    background:linear-gradient(90deg,#e74a3b,#c0392b);
+    color:#fff;
+    box-shadow:0 4px 12px rgba(231,74,59,0.4);
+}
+
+/* Optional hover effect */
+.alert:hover{
+    transform:translateY(-2px);
+    transition:0.3s;
+}
+
+/* Smooth entry animation */
+@keyframes fadeSlide{
+    from{
+        opacity:0;
+        transform:translateY(-10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+</style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+<div class="container">
+    <a class="navbar-brand" href="/"><i class="fa-solid fa-dna"></i> GeneNFT</a>
+    <div class="collapse navbar-collapse">
+        <!--<ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="/researcher_login">Researcher</a></li>
+            <li class="nav-item"><a class="nav-link" href="/dataowner_login">Data Owner</a></li>
+            <li class="nav-item"><a class="nav-link" href="/admin_login">Admin</a></li>
+        </ul>-->
+		<ul class="navbar-nav ms-auto">
+			<li class="nav-item">
+                <a class="nav-link active" href="/">
+                    <i class="fa-solid fa-home"></i> Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/login_res">
+                    <i class="fa-solid fa-microscope"></i> Researcher
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/login_owner">
+                    <i class="fa-solid fa-user"></i> Data Owner
+                </a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/login">
+                    <i class="fa-solid fa-user-shield"></i> Admin
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</div>
+</nav>
+<div class="container mt-5 pt-5">
+{% block content %}{% endblock %}
+</div>
+<div class="footer">
+ GeneNFT Platform | Privacy Preserving Genomic NFTs
+</div>
+</body>
+</html>

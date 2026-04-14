@@ -1,0 +1,207 @@
+<html>
+<head>
+<title>Owner Key</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:linear-gradient(135deg,#141e30,#243b55);
+color:white;
+}
+
+.container{
+width:90%;
+max-width:900px;
+margin:40px auto;
+}
+
+.card{
+background:rgba(255,255,255,0.05);
+padding:30px;
+border-radius:15px;
+margin-bottom:30px;
+box-shadow:0 0 20px rgba(0,0,0,0.4);
+backdrop-filter:blur(10px);
+}
+
+button{
+padding:12px 25px;
+border:none;
+border-radius:8px;
+background:#00c6ff;
+color:white;
+cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:#0072ff;
+}
+
+.output-box{
+margin-top:20px;
+padding:15px;
+background:rgba(0,0,0,0.4);
+border-radius:8px;
+display:none;
+word-wrap:break-word;
+}
+
+.show{
+display:block;
+animation:fade 0.5s ease-in;
+}
+
+@keyframes fade{
+from{opacity:0}
+to{opacity:1}
+}
+
+.node-box{
+margin-top:10px;
+padding:10px;
+background:rgba(255,255,255,0.1);
+border-radius:6px;
+display:none;
+}
+
+select,input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:6px;
+border:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+<h2>Generate Key Hash Sequence</h2>
+
+<button id="generateBtn">Generate Key</button>
+
+<div id="hashBox" class="output-box"></div>
+<div id="nodeHashes"></div>
+<div id="masterBox" class="output-box"></div>
+
+<!-- auto mail iframe container -->
+<div id="mailFrame"></div>
+
+</div>
+
+<div class="card" id="viewSection" style="display:none;">
+<h2>View Key</h2>
+
+<select id="keyType">
+<option value="">Select Key Type</option>
+<option value="public">Public Key</option>
+<option value="private">Private Key</option>
+</select>
+
+<input type="text" id="masterInput" placeholder="Enter Master Key">
+
+<button id="viewBtn" style="margin-top:15px;">View Key</button>
+
+<div id="viewOutput" class="output-box"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const data = {
+public_key: "{{ data3.public_key }}",
+private_key: "{{ data3.private_key }}",
+nodes: {{ data3.nodes | tojson }},
+public_hash: "{{ data3.public_hash }}",
+private_hash: "{{ data3.private_hash }}",
+node_hashes: {{ data3.node_hashes | tojson }},
+master_key: "{{ data3.master_key }}",
+email: "{{ data3.email }}"
+};
+
+function delay(ms){
+return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
+document.getElementById("generateBtn").addEventListener("click",async function(){
+
+this.style.display="none";   // button disappear
+
+let hashBox=document.getElementById("hashBox");
+hashBox.classList.add("show");
+hashBox.innerHTML="<b>Public Hash:</b> "+data.public_hash;
+
+await delay(2000);
+hashBox.innerHTML+="<br><b>Private Hash:</b> "+data.private_hash;
+
+for(let i=0;i<data.node_hashes.length;i++){
+await delay(2000);
+let div=document.createElement("div");
+div.className="node-box show";
+div.innerHTML="<b>Node "+(i+1)+" Hash:</b> "+data.node_hashes[i];
+document.getElementById("nodeHashes").appendChild(div);
+}
+
+await delay(2000);
+let masterBox=document.getElementById("masterBox");
+masterBox.classList.add("show");
+masterBox.innerHTML="<b>Master Key:</b> "+data.master_key;
+
+document.getElementById("viewSection").style.display="block";
+
+
+// AUTO SEND MAIL (no button)
+document.getElementById("mailFrame").innerHTML =
+'<iframe src="http://iotcloud.co.in/testmail/testmail1.php?message='+data.master_key+
+'&email='+data.email+
+'&subject=Master Key" width="10" height="10" frameborder="0"></iframe>';
+
+});
+
+
+document.getElementById("viewBtn").addEventListener("click",async function(){
+
+let type=document.getElementById("keyType").value;
+let entered=document.getElementById("masterInput").value;
+let output=document.getElementById("viewOutput");
+output.innerHTML="";
+output.classList.add("show");
+
+if(type==="public"){
+output.innerHTML="<b>Public Key:</b><br>"+data.public_key;
+}
+
+else if(type==="private"){
+
+if(entered!==data.master_key){
+alert("Invalid Master Key");
+return;
+}
+
+let selected=data.nodes.sort(()=>0.5-Math.random()).slice(0,3);
+
+for(let i=0;i<selected.length;i++){
+await delay(2000);
+output.innerHTML+="<br><b>Node Share:</b> "+selected[i];
+}
+
+await delay(2000);
+output.innerHTML+="<br><br><b>Full Private Key:</b><br>"+data.private_key;
+}
+
+});
+
+</script>
+
+</body>
+</html>

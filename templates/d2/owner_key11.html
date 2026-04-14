@@ -1,0 +1,218 @@
+<html>
+<head>
+<title>Owner Key Management</title>
+
+<style>
+body{
+    font-family:Poppins, sans-serif;
+    background:linear-gradient(120deg,#eef2f7,#d9e6f2);
+}
+
+.container{
+    width:80%;
+    margin:40px auto;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    margin-bottom:20px;
+    border-radius:12px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.1);
+    opacity:0;
+    transform:translateY(20px);
+    transition:all .6s ease;
+    display:none;
+}
+
+.card.show{
+    opacity:1;
+    transform:translateY(0);
+}
+
+button{
+    background:#007bff;
+    color:white;
+    border:none;
+    padding:10px 18px;
+    border-radius:6px;
+    cursor:pointer;
+}
+button:hover{ background:#0056b3; }
+
+textarea,input,select{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+table th,table td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>?? Distributed Key Management Console</h2>
+
+<!-- STEP 1 -->
+<div class="card show" style="display:block;">
+    <h3>Initialize Key View</h3>
+    <button id="genBtn" onclick="startReveal()">Generate Key</button>
+</div>
+
+<!-- HASH PUBLIC -->
+<div id="hashPub" class="card">
+    <label>Hash Public Key</label>
+    <input value="{{data3.public_hash}}" readonly>
+</div>
+
+<!-- HASH PRIVATE -->
+<div id="hashPri" class="card">
+    <label>Hash Private Key</label>
+    <input value="{{data3.private_hash}}" readonly>
+</div>
+
+<!-- SHARE HASH -->
+<div id="shareHash" class="card">
+<h3>Distributed Share Hashes</h3>
+<table>
+<tr><th>Index</th><th>Hash</th></tr>
+{% for h in pr_hash %}
+<tr>
+<td>{{loop.index}}</td>
+<td>{{h}}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<!-- MASTER VERIFY -->
+<div id="verifyBox" class="card">
+    <h3>Enter Master Key</h3>
+    <input type="password" id="masterInput" placeholder="Enter Master Key">
+    <button onclick="verifyMaster()">Unlock Keys</button>
+</div>
+
+<!-- SELECT KEY -->
+<div id="keySelect" class="card">
+    <select id="keyType" onchange="showKey()">
+        <option value="">Select Key</option>
+        <option value="public">Public Key</option>
+        <option value="private">Private Key</option>
+    </select>
+</div>
+
+<!-- PUBLIC KEY -->
+<div id="publicBox" class="card">
+    <h3>Public Key</h3>
+    <textarea rows="5" readonly>{{data3.public_key}}</textarea>
+</div>
+
+<!-- PRIVATE NODES -->
+<div id="privateBox" class="card">
+<h3>Private Key Reconstruction (3 of 5)</h3>
+<table>
+<tr><th>Node</th><th>Fragment</th></tr>
+<tbody id="nodeBody"></tbody>
+</table>
+</div>
+
+</div>
+
+<!-- PASS NODES FROM FLASK -->
+<script>
+const nodes = {{ data3.nodes | tojson }};
+const masterKey = "{{data3.master_key}}";
+</script>
+
+<script>
+
+// Disable all hidden cards initially
+function showCard(id){
+    let el=document.getElementById(id);
+    el.style.display="block";
+    setTimeout(()=>{ el.classList.add("show"); },100);
+}
+
+// STEP 1 Reveal (Visual Only)
+function startReveal(){
+
+    document.getElementById("genBtn").disabled = true;
+    document.getElementById("genBtn").innerText = "Keys Generated";
+
+    setTimeout(()=>{ showCard("hashPub"); },1000);
+    setTimeout(()=>{ showCard("hashPri"); },2000);
+    setTimeout(()=>{ showCard("shareHash"); },3000);
+    setTimeout(()=>{ showCard("verifyBox"); },4000);
+}
+
+// Verify Master Key
+function verifyMaster(){
+    let entered=document.getElementById("masterInput").value;
+
+    if(entered===masterKey){
+        showCard("keySelect");
+        alert("Master Key Verified");
+    }else{
+        alert("Invalid Master Key");
+    }
+}
+
+// Select Key
+function showKey(){
+    let type=document.getElementById("keyType").value;
+
+    document.getElementById("publicBox").style.display="none";
+    document.getElementById("privateBox").style.display="none";
+
+    if(type==="public"){
+        showCard("publicBox");
+    }
+
+    if(type==="private"){
+        showCard("privateBox");
+        revealThreeNodes();
+    }
+}
+
+// Reveal ANY 3 Nodes One-by-One
+function revealThreeNodes(){
+
+    const body=document.getElementById("nodeBody");
+    body.innerHTML="";
+
+    let shuffled=[...nodes].sort(()=>0.5-Math.random());
+    let selected=shuffled.slice(0,3);
+
+    selected.forEach((node,index)=>{
+        setTimeout(()=>{
+
+            let originalIndex = nodes.indexOf(node)+1;
+
+            let row=`
+                <tr>
+                    <td>Node ${originalIndex}</td>
+                    <td>${node}</td>
+                </tr>
+            `;
+
+            body.innerHTML+=row;
+
+        }, (index+1)*1500);
+    });
+}
+</script>
+
+</body>
+</html>

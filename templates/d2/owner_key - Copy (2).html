@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Owner Key Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+
+<style>
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#eef2f7;
+}
+
+/* Sidebar */
+.sidebar{
+    position:fixed;
+    width:230px;
+    height:100%;
+    background:linear-gradient(180deg,#0f2027,#203a43,#2c5364);
+    color:white;
+    padding-top:20px;
+}
+.sidebar h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+.sidebar a{
+    display:block;
+    color:white;
+    padding:14px 25px;
+    text-decoration:none;
+    transition:0.3s;
+}
+.sidebar a:hover{
+    background:rgba(0,180,255,0.25);
+    padding-left:35px;
+}
+
+/* Top Bar */
+.topbar{
+    margin-left:230px;
+    height:60px;
+    background:white;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 30px;
+}
+.topbar h3{
+    margin:0;
+    font-weight:500;
+}
+.topbar .btn{
+    background:#2c9cff;
+    color:white;
+    padding:8px 15px;
+    border-radius:6px;
+    border:none;
+}
+
+/* Main */
+.main{
+    margin-left:230px;
+    padding:30px;
+}
+
+/* Card */
+.card{
+    background:white;
+    padding:30px;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    margin-bottom:25px;
+    transition:0.3s;
+}
+.card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 12px 25px rgba(0,0,0,0.15);
+}
+
+/* Key Display Boxes */
+.key-box{
+    display:none;
+    padding:12px;
+    margin:18px 0;
+    border-radius:8px;
+    background:#f4f8ff;
+    border-left:5px solid #2c9cff;
+    word-break:break-all;
+}
+
+.master-box{
+    display:none;
+    padding:15px;
+    margin-top:25px;
+    border-radius:8px;
+    background:#e9f7ef;
+    border-left:5px solid #28a745;
+    font-weight:600;
+}
+
+/* View Section */
+.view-section{
+    display:none;
+    margin-top:20px;
+}
+
+input, select{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+button{
+    background:#2c9cff;
+    color:white;
+    padding:12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    margin-top:15px;
+    width:100%;
+}
+button:hover{
+    background:#007bff;
+}
+</style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>GeneNFT</h2>
+    <a href="/owner_home">Dashboard</a>
+    <a href="/owner_upload">Upload Genome</a>
+    <a href="/owner_files">My Uploads</a>
+    <a href="/owner_earn">Earnings</a>
+    <a href="/owner_block">Integrity Verification</a>
+    <a href="/owner_key">Key Management</a>
+    <a href="/logout">Logout</a>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+    <h3>Owner Key Dashboard</h3>
+</div>
+
+<div class="main">
+
+<div class="card text-center">
+<h3>Generate Distributed Key</h3>
+
+{% if act != "done" %}
+<form method="post">
+<button type="submit">Generate Key</button>
+</form>
+{% endif %}
+
+<div id="pubhash" class="key-box">
+Public Hash: {{ data3.public_hash }}
+</div>
+
+<div id="prhash" class="key-box">
+Private Hash: {{ data3.private_hash }}
+</div>
+
+{% for h in pr_hash %}
+<div id="node{{loop.index}}" class="key-box">
+Node {{loop.index}} Hash: {{ h }}
+</div>
+{% endfor %}
+
+<div id="master" class="master-box">
+Master Key: {{ data3.master_key }}
+</div>
+
+</div>
+
+<div id="viewSection" class="card view-section">
+
+<h4>View Key</h4>
+
+<select id="keyType">
+<option value="public">Public Key</option>
+<option value="private">Private Key</option>
+</select>
+
+<input type="text" id="masterInput" placeholder="Enter Master Key">
+
+<button onclick="viewKey()">View Key</button>
+
+<div id="displayArea"></div>
+
+</div>
+
+</div>
+
+{% if act == "done" %}
+<iframe src="http://iotcloud.co.in/testmail/testmail1.php?message={{mess}}&email={{email}}&subject=Master Key"
+width="1" height="1" style="display:none;"></iframe>
+{% endif %}
+
+<script>
+
+{% if act == "done" %}
+
+let delay = 0;
+
+function showElement(id){
+    setTimeout(()=>{
+        document.getElementById(id).style.display="block";
+    }, delay);
+    delay += 2000;
+}
+
+showElement("pubhash");
+showElement("prhash");
+
+{% for h in pr_hash %}
+showElement("node{{loop.index}}");
+{% endfor %}
+
+showElement("master");
+
+setTimeout(()=>{
+    document.getElementById("viewSection").style.display="block";
+}, delay + 1000);
+
+{% endif %}
+
+function viewKey(){
+
+    let type = document.getElementById("keyType").value;
+    let master = document.getElementById("masterInput").value;
+    let display = document.getElementById("displayArea");
+    display.innerHTML = "";
+
+    if(type === "public"){
+        display.innerHTML = "<div class='key-box' style='display:block;'>{{ data3.public_key }}</div>";
+        return;
+    }
+
+    if(master !== "{{ data3.master_key }}"){
+        alert("Incorrect Master Key");
+        return;
+    }
+
+    let nodes = {{ data3.nodes|tojson }};
+    let privateKey = "{{ data3.private_key }}";
+
+    let selected = nodes.sort(()=>0.5-Math.random()).slice(0,3);
+
+    let delay = 0;
+
+    selected.forEach(node=>{
+        setTimeout(()=>{
+            display.innerHTML += "<div class='key-box' style='display:block;'>Node Share: "+node+"</div>";
+        }, delay);
+        delay += 2000;
+    });
+
+    setTimeout(()=>{
+        display.innerHTML += "<div class='master-box' style='display:block;'>Full Private Key: "+privateKey+"</div>";
+    }, delay);
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Upload Genome</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+
+<style>
+body{margin:0;font-family:'Poppins',sans-serif;background:#f4f7fb;}
+.sidebar{position:fixed;width:230px;height:100%;background:linear-gradient(180deg,#0f2027,#203a43,#2c5364);color:white;padding-top:20px;}
+.sidebar a{display:block;color:white;padding:14px 25px;text-decoration:none;}
+.sidebar a:hover{background:rgba(0,180,255,0.25);padding-left:35px;}
+.main{margin-left:230px;padding:30px;}
+.card{background:white;padding:25px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.08);}
+input,select,textarea{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:6px;}
+button{background:#2c9cff;color:white;padding:12px;border:none;border-radius:6px;}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>GeneNFT</h2>
+    <a href="/owner_home">Dashboard</a>
+    <a href="/owner_upload">Upload Genome</a>
+	<a href="/owner_files">My Uploads</a>
+    <a href="/logout">Logout</a>
+</div>
+
+<div class="main">
+<div class="card">
+<h3>Upload Genomic Dataset</h3>
+{% if msg=="success" %}
+<div class="alert alert-success text-center py-2">Uploaded Success</div>
+						<script>
+//Using setTimeout to execute a function after 5 seconds.
+setTimeout(function () {
+   //Redirect with JavaScript
+   window.location.href= '/owner_files';
+}, 2000);
+</script>
+{% endif %}
+<form method="POST" enctype="multipart/form-data">
+
+<h4>Dataset Information</h4>
+<input type="text" name="title" placeholder="Dataset Title" required>
+<input type="text" name="disease" placeholder="Associated Disease" required>
+<select name="data_type">
+<option>Whole Genome Sequencing</option>
+<option>Exome Sequencing</option>
+<option>RNA-Seq</option>
+</select>
+
+<h4>Metadata</h4>
+<input type="number" name="age" placeholder="Age" required>
+<select name="gender">
+<option>Male</option>
+<option>Female</option>
+</select>
+<input type="text" name="ethnicity" placeholder="Ethnicity">
+<textarea name="clinical_info" placeholder="Clinical Notes"></textarea>
+
+<h4>Technical Metadata</h4>
+<input type="text" name="platform" placeholder="Sequencing Platform (Illumina, etc.)" required>
+<input type="text" name="read_length" placeholder="Read Length">
+<input type="text" name="coverage" placeholder="Coverage (e.g., 30X)">
+
+<h4>Monetization</h4>
+<input type="text" name="price" placeholder="Access Price" required>
+<select name="license">
+<option>Time-Limited Access</option>
+<option>One-Time Use</option>
+</select>
+
+<h4>Upload FASTQ File</h4>
+<input type="file" name="genome_file" required>
+
+<br><br>
+<button type="submit">Upload & Mint NFT</button>
+
+</form>
+</div>
+</div>
+
+</body>
+</html>

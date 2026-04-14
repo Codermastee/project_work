@@ -1,0 +1,200 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GeneNFT Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+
+<style>
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#f4f7fb;
+}
+
+/* ===== Sidebar ===== */
+.sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    height:100%;
+    width:230px;
+    /*background:linear-gradient(180deg,#1f4037,#99f2c8);*/
+	background: linear-gradient(180deg, #0f2027, #203a43, #2c5364);
+    color:white;
+    padding-top:20px;
+}
+
+.sidebar h2{
+    text-align:center;
+    font-size:20px;
+    margin-bottom:30px;
+    font-weight:500;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    padding:14px 25px;
+    text-decoration:none;
+    font-size:14px;
+    transition:.3s;
+}
+
+.sidebar a:hover{
+    background:rgba(255,255,255,0.2);
+    padding-left:35px;
+}
+
+/* ===== Main Content ===== */
+.main{
+    margin-left:230px;
+    padding:30px;
+}
+
+/* Header */
+.header{
+    background:white;
+    padding:15px 25px;
+    border-radius:10px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom:25px;
+}
+
+.header h3{
+    margin:0;
+    font-weight:500;
+}
+
+/* Cards */
+.card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.card h4{
+    margin:0;
+    color:#777;
+    font-weight:500;
+}
+
+.count{
+    font-size:32px;
+    color:#1f4037;
+    margin-top:10px;
+    font-weight:600;
+}
+
+/* Footer */
+.footer{
+    margin-top:30px;
+    color:#888;
+    font-size:13px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== LEFT PANEL ===== -->
+<div class="sidebar">
+    <h2>GeneNFT</h2>
+
+    <a href="/admin">Dashboard</a>
+    <a href="/view_res">Researcher Approval</a>
+    <a href="/view_owner">Data Owners</a>
+    <a href="/view_datasets">Datasets</a>
+    <a href="/view_transactions">Blockchain Logs</a>
+    <a href="/logout">Logout</a>
+</div>
+
+<!-- ===== MAIN AREA ===== -->
+<div class="main">
+   <div class="header">
+    <h3>Researcher Approval</h3>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Institution</th>
+            <th>Email</th>
+            <th>Domain</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for r in researchers %}
+        <tr>
+            <td>{{ r.id }}</td>
+            <td>{{ r.name }}</td>
+            <td>{{ r.institution }}</td>
+            <td>{{ r.email }}</td>
+            <td>{{ r.domain }}</td>
+            <td>{{ r.status }}</td>
+            <td>
+                {% if r.status == 'Pending' %}
+                <a href="/approve/{{ r.id }}" class="btn approve">Approve</a>
+                <a href="/reject/{{ r.id }}" class="btn reject">Reject</a>
+                {% else %}
+                Approved
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<style>
+.table{
+    width:100%;
+    background:white;
+    border-radius:10px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.08);
+    border-collapse:collapse;
+}
+.table th, .table td{
+    padding:14px;
+    border-bottom:1px solid #eee;
+    text-align:left;
+}
+.table th{
+    background:#f4f7fb;
+}
+.btn{
+    padding:6px 12px;
+    text-decoration:none;
+    color:white;
+    border-radius:6px;
+    font-size:13px;
+}
+.approve{ background:#28a745; }
+.reject{ background:#dc3545; }
+</style>
+
+    <div class="footer">
+        GeneNFT System - Privacy-Preserving Genomic Data Marketplace
+    </div>
+
+</div>
+
+</body>
+</html>

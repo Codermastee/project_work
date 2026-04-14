@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+/* Page spacing inside base layout */
+.register-wrapper{
+    padding:40px 0;
+}
+
+/* Card Design */
+.register-box{
+    background:#fff;
+    padding:35px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    animation:fadeIn 0.6s ease;
+}
+
+.register-box h2{
+    text-align:center;
+    margin-bottom:25px;
+    color:#4e73df;
+    font-weight:600;
+}
+
+/* Inputs */
+.register-box input{
+    width:100%;
+    padding:11px;
+    margin-bottom:15px;
+    border-radius:8px;
+    border:1px solid #d1d3e2;
+    transition:0.3s;
+}
+
+.register-box input:focus{
+    border-color:#4e73df;
+    box-shadow:0 0 8px rgba(78,115,223,0.3);
+    outline:none;
+}
+
+/* Button */
+.register-box button{
+    width:100%;
+    padding:12px;
+    background:#4e73df;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:600;
+    transition:0.3s;
+}
+
+.register-box button:hover{
+    background:#1cc88a;
+    transform:translateY(-2px);
+}
+
+/* Flash message */
+.success-msg{
+    background:#1cc88a;
+    color:#fff;
+    padding:10px;
+    border-radius:6px;
+    margin-bottom:15px;
+    text-align:center;
+}
+
+/* Animation */
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(20px);}
+    to{opacity:1; transform:translateY(0);}
+}
+</style>
+<script language="javascript">
+function validate()
+{
+	if(document.form1.name.value=="")
+	{
+	alert("Enter the Name");
+	document.form1.name.focus();
+	return false;
+	}
+	if(document.form1.institution.value=="")
+	{
+	alert("Enter the Institution/Organization");
+	document.form1.institution.focus();
+	return false;
+	}
+	if(document.form1.domain.value=="")
+	{
+	alert("Enter the Domain");
+	document.form1.domain.focus();
+	return false;
+	}
+	if(document.form1.mobile.value=="")
+	{
+	alert("Enter the Mobile No.");
+	document.form1.mobile.focus();
+	return false;
+	}
+	if(isNaN(document.form1.mobile.value))
+	{
+	alert("Invalid Mobile No.");
+	document.form1.mobile.select();
+	return false;
+	}
+	if(document.form1.mobile.value.length!=10)
+	{
+	alert("Mobile No. must be 10 digits!");
+	document.form1.mobile.select();
+	return false;
+	}
+	if(document.form1.email.value=="")
+	{
+	alert("Enter the Email");
+	document.form1.email.focus();
+	return false;
+	}
+	if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(document.form1.email.value))  
+	{
+	
+	}
+	else
+	{
+	alert("Invalid E-mail!");
+	document.form1.email.select();
+	return false;
+	}
+	if(document.form1.location.value=="")
+	{
+	alert("Enter the Location");
+	document.form1.location.focus();
+	return false;
+	}
+	if(document.form1.uname.value=="")
+	{
+	alert("Enter the Username");
+	document.form1.uname.focus();
+	return false;
+	}
+	if(document.form1.pass.value=="")
+	{
+	alert("Enter the Password");
+	document.form1.pass.focus();
+	return false;
+	}
+	if(document.form1.cpass.value=="")
+	{
+	alert("Enter the Confirm Password");
+	document.form1.cpass.focus();
+	return false;
+	}
+	if(document.form1.pass.value!=document.form1.cpass.value)
+	{
+	alert("Password does not match!");
+	document.form1.cpass.select();
+	return false;
+	}
+return true;
+}
+</script> 
+<div class="container register-wrapper">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="register-box">
+                <h2><i class="fa fa-user-graduate"></i> Researcher Registration</h2>
+
+          
+				
+				{% if msg=="success" %}
+						<div class="alert alert-success text-center py-2">Registered Success</div>
+						<script>
+//Using setTimeout to execute a function after 5 seconds.
+setTimeout(function () {
+   //Redirect with JavaScript
+   window.location.href= '/login_res';
+}, 3000);
+</script>
+						{% endif %}
+
+				{% if msg=="fail" %}
+						<div class="alert alert-danger text-center py-2">Username already exist!</div>
+						
+						{% endif %}
+                <form name="form1" method="POST">
+
+                    <input type="text" name="name" placeholder="Full Name">
+
+                    <input type="text" name="institution" placeholder="Institution / Organization">
+
+                    <input type="text" name="domain" placeholder="Research Domain (Genomics, Oncology, AI Bioinfo)">
+					
+					<input type="text" name="mobile" maxlength="10" placeholder="Mobile Number">
+                    <input type="email" name="email" placeholder="Email">
+                    <input type="text" name="location" placeholder="Location">
+
+                    <input type="text" name="uname" placeholder="Username">
+
+                    <input type="password" name="pass" placeholder="Password">
+
+                    <input type="password" name="cpass" placeholder="Confirm Password">
+
+                    <button type="submit" onclick="return validate()">
+                        <i class="fa fa-paper-plane"></i> Register
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

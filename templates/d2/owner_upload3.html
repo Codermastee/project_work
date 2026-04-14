@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GeneNFT - Data Owner Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Body and Fonts */
+        body {
+            margin:0;
+            font-family:'Poppins',sans-serif;
+            background:#f4f7fb;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            left: 230px;
+            right:0;
+            height: 60px;
+            background:#ffffff;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:0 20px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        header h1 {
+            font-size: 18px;
+            color:#2c3e50;
+            margin:0;
+        }
+        header .profile {
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+        header .profile img {
+            width:36px;
+            height:36px;
+            border-radius:50%;
+            border:2px solid #2c9cff;
+        }
+
+        /* Sidebar */
+        .sidebar{
+            position: fixed;
+            width:230px;
+            height:100%;
+            background: linear-gradient(180deg,#0f2027,#203a43,#2c5364);
+            color:white;
+            padding-top:20px;
+            overflow:auto;
+        }
+        .sidebar h2{
+            text-align:center;
+            margin-bottom:30px;
+            font-size:22px;
+        }
+        .sidebar a{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            color:white;
+            padding:12px 20px;
+            text-decoration:none;
+            border-left:3px solid transparent;
+            transition:.3s;
+        }
+        .sidebar a i {
+            width:20px;
+            text-align:center;
+        }
+        .sidebar a:hover{
+            background: rgba(0,180,255,0.2);
+            padding-left:25px;
+            border-left:3px solid #2c9cff;
+        }
+        .sidebar a.active{
+            background: rgba(0,180,255,0.25);
+            border-left:3px solid #2c9cff;
+        }
+
+        /* Main Content */
+        .main{
+            margin-left:230px;
+            padding:100px 30px 30px 30px;
+        }
+
+        /* Cards */
+        .card{
+            background:white;
+            border-radius:12px;
+            box-shadow:0 6px 18px rgba(0,0,0,0.08);
+            padding:20px;
+            margin-bottom:20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover{
+            transform: translateY(-5px);
+            box-shadow:0 12px 25px rgba(0,0,0,0.15);
+        }
+        .card h4{
+            margin-top:0;
+            color:#2c3e50;
+        }
+        .card p{
+            margin:6px 0;
+            font-size:14px;
+            color:#555;
+        }
+
+        /* Buttons */
+        .btn{
+            padding:8px 14px;
+            border:none;
+            background:#2c9cff;
+            color:white;
+            border-radius:6px;
+            text-decoration:none;
+            transition:0.3s;
+            cursor:pointer;
+        }
+        .btn:hover{
+            background:#1a7fd2;
+        }
+
+        /* Tables */
+        .table{
+            width:100%;
+            border-collapse:collapse;
+        }
+        .table th,.table td{
+            padding:12px;
+            border-bottom:1px solid #eee;
+            text-align:left;
+        }
+        .table th{
+            background:#f0f4f8;
+        }
+
+        /* Footer */
+        footer{
+            margin-left:230px;
+            text-align:center;
+            padding:15px 0;
+            background:#ffffff;
+            box-shadow:0 -2px 6px rgba(0,0,0,0.1);
+            color:#888;
+            font-size:13px;
+            position: fixed;
+            bottom:0;
+            width:calc(100% - 230px);
+        }
+
+        /* Checkbox styling */
+        .checkbox-label{
+            display:flex;
+            align-items:center;
+            gap:4px;
+            font-size:14px;
+            font-weight:400;
+        }
+        .checkbox-label input[type="checkbox"]{
+            margin:0;
+            vertical-align:middle;
+            width:16px;
+            height:16px;
+        }
+
+        /* Allowed Analysis Types Grid */
+        .analysis-types{
+            display:flex;
+            flex-wrap:wrap;
+            gap:15px;
+        }
+        .analysis-types label{
+            display:flex;
+            align-items:center;
+            gap:5px;
+            font-size:14px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>GeneNFT</h2>
+    <a href="/data_owner_dashboard" class="active"><i class="fa fa-home"></i> Dashboard</a>
+    <a href="/upload_dataset"><i class="fa fa-upload"></i> Upload Genome</a>
+    <a href="/view_uploaded"><i class="fa fa-database"></i> My Uploads</a>
+    <a href="/earnings"><i class="fa fa-wallet"></i> Earnings</a>
+    <a href="/logout"><i class="fa fa-sign-out-alt"></i> Logout</a>
+</div>
+
+<!-- Header -->
+<header>
+    <h1>Welcome, {{ owner_name }}</h1>
+    <div class="profile">
+        <span>{{ owner_name }}</span>
+        <img src="/static/images/avatar.png" alt="Avatar">
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="main">
+
+    <!-- Dashboard Cards Example -->
+    <div class="card">
+        <h4>Total Datasets Uploaded</h4>
+        <p>5</p>
+    </div>
+    <div class="card">
+        <h4>Total Earnings</h4>
+        <p>2.3 ETH</p>
+    </div>
+
+    <!-- Example Upload Form Card -->
+    <div class="card">
+        <h4>Upload Genome Dataset</h4>
+        <form method="POST" enctype="multipart/form-data">
+            <label>Dataset Title</label>
+            <input type="text" name="title" placeholder="TP53_Mutation_Study" required>
+            
+            <label>Description</label>
+            <textarea name="description" rows="3" placeholder="Whole Genome Sequence Data"></textarea>
+
+            <label>Ethnicity</label>
+            <select name="ethnicity" required>
+                <option value="">Select Ethnicity</option>
+                <option value="Asian">Asian</option>
+                <option value="Caucasian">Caucasian</option>
+                <option value="African">African</option>
+                <option value="Hispanic">Hispanic</option>
+                <option value="Middle Eastern">Middle Eastern</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label>Allowed Analysis Types</label>
+            <div class="analysis-types">
+                <label><input type="checkbox" name="allowed_analysis" value="All"> All</label>
+                <label><input type="checkbox" name="allowed_analysis" value="Cancer"> Cancer</label>
+                <label><input type="checkbox" name="allowed_analysis" value="Diabetes"> Diabetes</label>
+                <label><input type="checkbox" name="allowed_analysis" value="Cardiovascular"> Cardiovascular</label>
+                <label><input type="checkbox" name="allowed_analysis" value="Neurological"> Neurological</label>
+            </div>
+
+            <label class="checkbox-label">
+                <input type="checkbox" name="consent" value="approved" required>
+                Consent Approved for Data Sharing
+            </label>
+
+            <label>Genome File (FASTQ)</label>
+            <input type="file" name="genome_file" required>
+
+            <label>Public Key / Wallet</label>
+            <input type="text" name="public_key" placeholder="0x..." required>
+
+            <br><br>
+            <button class="btn" type="submit">Upload Dataset</button>
+        </form>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+    &copy; 2026 GeneNFT. All rights reserved.
+</footer>
+
+</body>
+</html>

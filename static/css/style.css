@@ -1,0 +1,133 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI';
+    background: #f4f7fb;
+}
+
+.layout {
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    background: #1e1e2f;
+    color: white;
+    height: 100vh;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #00d4ff;
+}
+
+.sidebar a {
+    display: block;
+    color: white;
+    padding: 12px;
+    text-decoration: none;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    background: #2a2a40;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background: #00d4ff;
+    color: black;
+}
+
+/* Main */
+.main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Topbar */
+.topbar {
+    background: linear-gradient(to right, #4e73df, #1cc88a);
+    padding: 15px;
+    color: white;
+    text-align: right;
+}
+
+.profile i {
+    margin-right: 5px;
+}
+
+.logout {
+    margin-left: 15px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* Content */
+.content {
+    padding: 30px;
+    flex: 1;
+}
+
+/* Cards */
+.card-grid {
+    display: flex;
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    flex: 1;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.card i {
+    font-size: 40px;
+    color: #4e73df;
+}
+
+/* Tables */
+.styled-table {
+    width: 100%;
+    background: white;
+    border-collapse: collapse;
+}
+
+.styled-table th, .styled-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.approved {
+    background: #1cc88a;
+    padding: 5px 10px;
+    color: white;
+    border-radius: 20px;
+}
+
+/* Form */
+.form-box {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.form-box button {
+    background: #4e73df;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+}
+
+/* Footer */
+.footer {
+    background: #e3e6f0;
+    text-align: center;
+    padding: 10px;
+}

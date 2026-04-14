@@ -1,0 +1,144 @@
+<html>
+<head>
+<title>Upload Genome Dataset</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+
+<style>
+body{margin:0;font-family:'Poppins',sans-serif;background:#eef2f7;}
+.sidebar{position:fixed;width:230px;height:100%;background:linear-gradient(180deg,#0f2027,#203a43,#2c5364);color:white;padding-top:20px;}
+.sidebar a{display:block;color:white;padding:14px 25px;text-decoration:none;}
+.sidebar a:hover{background:rgba(0,180,255,0.25);padding-left:35px;}
+.main{margin-left:230px;padding:30px;}
+.card{background:white;padding:25px;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,0.08);}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 25px rgba(0,0,0,0.15);}
+input, select, textarea{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:6px;}
+button{background:#2c9cff;color:white;padding:12px;border:none;border-radius:6px;cursor:pointer;}
+label{font-weight:500;margin-top:10px;display:block;}
+.checkbox-label{display:flex;align-items:center;gap:10px;font-weight:400;}
+.analysis-types{
+    display: flex;       /* horizontal layout */
+    flex-wrap: wrap;     /* wrap to next line if not enough space */
+    gap: 15px;           /* spacing between checkboxes */
+    margin-top: 5px;
+}
+
+.analysis-types label{
+    display: flex;
+    align-items: center;
+    gap: 5px;            /* space between checkbox and text */
+    font-weight: 400;
+    font-size: 14px;
+}
+.checkbox-label {
+    display: flex;
+    align-items: center;   /* vertical alignment */
+    gap: 4px;              /* optional, or 0 for no extra space */
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1;        /* ensure text aligns with checkbox */
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin: 0;             /* remove default checkbox margin */
+    vertical-align: middle;
+    width: 16px;           /* consistent size */
+    height: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>GeneNFT</h2>
+    <a href="/owner_home">Dashboard</a>
+    <a href="/owner_upload">Upload Genome</a>
+    <a href="/owner_files">My Uploads</a>
+	<a href="/owner_earn">Earnings</a>
+	<a href="/owner_block">Integrity Verification</a>
+    <a href="/logout">Logout</a>
+</div>
+
+<div class="main">
+<div class="card">
+<h3>Upload Genome Dataset</h3>
+{% if msg=="success" %}
+<div class="alert alert-success text-center py-2">Uploaded Success</div>
+						<script>
+//Using setTimeout to execute a function after 5 seconds.
+setTimeout(function () {
+   //Redirect with JavaScript
+   window.location.href= '/owner_files';
+}, 2000);
+</script>
+{% endif %}
+{% if msg=="fail" %}
+<div class="alert alert-danger text-center py-2">Public Key Wrong!</div>
+{% endif %}
+<form method="POST" enctype="multipart/form-data">
+
+<!-- Basic Dataset Info -->
+<label for="title">Dataset Title</label>
+<input type="text" name="title" placeholder="e.g., Anitha_WGS_2026" required>
+
+<label for="description">Description</label>
+<textarea name="description" placeholder="Whole Genome Sequence Data" rows="3" required></textarea>
+
+
+<label>Allowed Analysis Types</label>
+<div class="analysis-types">
+  <label><input type="checkbox" name="allowed_analysis" value="All" id="all_types"> All</label>
+  <label><input type="checkbox" name="allowed_analysis" value="Cancer"> Cancer</label>
+  <label><input type="checkbox" name="allowed_analysis" value="Diabetes"> Diabetes</label>
+  <label><input type="checkbox" name="allowed_analysis" value="Cardiovascular"> Cardiovascular</label>
+  <label><input type="checkbox" name="allowed_analysis" value="Neurological"> Neurological</label>
+</div>
+
+<script>
+const allCheckbox = document.getElementById("all_types");
+const otherCheckboxes = document.querySelectorAll('input[name="allowed_analysis"]:not(#all_types)');
+
+allCheckbox.addEventListener('change', () => {
+  otherCheckboxes.forEach(cb => cb.checked = allCheckbox.checked);
+});
+</script>
+
+<label for="price">Price per Analysis</label>
+<input type="text" name="price" placeholder="0.5 ETH" required>
+
+
+<label for="ethnicity">Ethnicity</label>
+<select name="ethnicity" required>
+  <option value="">Select Ethnicity</option>
+  <option value="Asian">Asian</option>
+  <option value="Caucasian">Caucasian</option>
+  <option value="African">African</option>
+  <option value="Hispanic">Hispanic</option>
+  <option value="Middle Eastern">Middle Eastern</option>
+  <option value="Other">Other</option>
+</select>
+
+
+<!-- File Upload -->
+<label for="genome_file">Genome File (FASTQ)</label>
+<input type="file" name="genome_file" required>
+
+
+<label for="public_key">Public Key</label>
+<input type="text" name="public_key" placeholder="Enter your public key" required>
+<br><br>
+<!-- Consent -->
+<label class="checkbox-label">
+    <input type="checkbox" name="consent" value="approved" required>
+    Consent Approved for Data Sharing
+</label>
+<br>
+<button type="submit">Upload & Encrypt</button>
+</form>
+
+</div>
+</div>
+
+</body>
+</html>

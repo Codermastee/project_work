@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GeneNFT Data Owner Registration</title>
+<style>
+body{
+    font-family:Segoe UI;
+    background:linear-gradient(120deg,#1e3c72,#2a5298);
+}
+.container{
+    width:700px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:10px;
+}
+input,select{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+}
+button{
+    padding:12px;
+    background:#2a5298;
+    color:white;
+    border:none;
+    width:100%;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h2>?? Data Owner Registration</h2>
+
+<form method="POST">
+
+<h3>Personal Information</h3>
+<input name="full_name" placeholder="Full Name" required>
+<input type="date" name="dob">
+<select name="gender">
+<option>Male</option><option>Female</option>
+</select>
+<input name="nationality" placeholder="Nationality">
+
+<h3>Contact</h3>
+<input name="email" placeholder="Email">
+<input name="phone" placeholder="Phone">
+<input name="address" placeholder="Address">
+
+<h3>Blockchain Wallet</h3>
+<input name="wallet_address" placeholder="Wallet Address (0x...)">
+<select name="wallet_type">
+<option>MetaMask</option>
+<option>WalletConnect</option>
+</select>
+<select name="network">
+<option>Ethereum Testnet</option>
+<option>Polygon</option>
+</select>
+
+<h3>Genomic Metadata</h3>
+<input name="genome_type" placeholder="Genome Type (WGS)">
+<input name="sequencing_platform" placeholder="Platform (Illumina)">
+<input name="disease_tag" placeholder="Disease Tag">
+<input name="consent_scope" placeholder="Consent Scope">
+<input name="price" placeholder="Price per Analysis">
+
+<br><br>
+<button type="submit">Register & Create Blockchain Identity</button>
+</form>
+</div>
+</body>
+</html>

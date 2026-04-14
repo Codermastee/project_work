@@ -1,0 +1,431 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>GeneNFT - Data Owner Portal</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Favicon -->
+    <link href="../../static/web/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Red+Rose:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Icon Font -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css">
+
+    <!-- Libraries -->
+    <link href="../../static/web/lib/animate/animate.min.css" rel="stylesheet">
+
+    <!-- Bootstrap -->
+    <link href="../../static/web/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../static/web/css/style.css" rel="stylesheet">
+	<style type="text/css">
+	/* Glass container */
+.glass-image-container {
+    width: 85%;
+    max-width: 400px;
+    padding: 15px;
+    border-radius: 25px;
+
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+    transition: 0.4s ease;
+}
+
+/* Image style */
+.glass-img {
+    width: 100%;
+    height: auto;
+    border-radius: 20px;
+}
+
+/* Hover effect */
+.glass-image-container:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+	</style>
+<script language="javascript">
+function validate()
+{
+	if(document.form1.name.value=="")
+	{
+	alert("Enter the Name");
+	document.form1.name.focus();
+	return false;
+	}
+	if(document.form1.dob.value=="")
+	{
+	alert("Enter the Date of Birth");
+	document.form1.dob.focus();
+	return false;
+	}
+	if(document.form1.gender.selectedIndex==0)
+	{
+	alert("Select the Gender");
+	document.form1.gender.focus();
+	return false;
+	}
+	if(document.form1.mobile.value=="")
+	{
+	alert("Enter the Mobile No.");
+	document.form1.mobile.focus();
+	return false;
+	}
+	if(isNaN(document.form1.mobile.value))
+	{
+	alert("Invalid Mobile No.");
+	document.form1.mobile.select();
+	return false;
+	}
+	if(document.form1.mobile.value.length!=10)
+	{
+	alert("Mobile No. must be 10 digits!");
+	document.form1.mobile.select();
+	return false;
+	}
+	if(document.form1.email.value=="")
+	{
+	alert("Enter the Email");
+	document.form1.email.focus();
+	return false;
+	}
+	if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(document.form1.email.value))  
+	{
+	
+	}
+	else
+	{
+	alert("Invalid E-mail!");
+	document.form1.email.select();
+	return false;
+	}
+	if(document.form1.address.value=="")
+	{
+	alert("Enter the Address");
+	document.form1.address.focus();
+	return false;
+	}
+	if(document.form1.country.value=="")
+	{
+	alert("Enter the Country");
+	document.form1.country.focus();
+	return false;
+	}
+	if(document.form1.uname.value=="")
+	{
+	alert("Enter the Username");
+	document.form1.uname.focus();
+	return false;
+	}
+	if(document.form1.pass.value=="")
+	{
+	alert("Enter the Password");
+	document.form1.pass.focus();
+	return false;
+	}
+	if(document.form1.cpass.value=="")
+	{
+	alert("Enter the Confirm Password");
+	document.form1.cpass.focus();
+	return false;
+	}
+	if(document.form1.pass.value!=document.form1.cpass.value)
+	{
+	alert("Password does not match!");
+	document.form1.cpass.select();
+	return false;
+	}
+	if(document.form1.s_question.selectedIndex==0)
+	{
+	alert("Select the Security Question");
+	document.form1.s_question.focus();
+	return false;
+	}
+	if(document.form1.s_answer.value=="")
+	{
+	alert("Enter the Answer");
+	document.form1.s_answer.focus();
+	return false;
+	}
+	var agree = document.getElementById("agree");
+
+    if (!agree.checked) {
+        alert("You must agree to the Terms & Conditions to continue.");
+        agree.focus();
+        return false;
+    }
+return true;
+}
+</script> 
+</head>
+
+<body>
+
+<!-- Spinner -->
+<div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
+</div>
+
+<!-- Topbar -->
+<div class="container-fluid py-2 d-none d-lg-flex">
+    <div class="container">
+        <div class="d-flex justify-content-between">
+            <div>
+                <small class="me-3"><i class="fa fa-dna me-2"></i>Decentralized Genomic NFT Platform</small>
+                <small><i class="fa fa-shield-alt me-2"></i>Privacy Preserving Architecture</small>
+            </div>
+            <nav class="breadcrumb mb-0">
+                <a class="breadcrumb-item small text-body" href="/register">New Researcher</a>
+            <a class="breadcrumb-item small text-body" href="/reg_owner">New Lab Assistant</a>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Brand -->
+<div class="container-fluid bg-primary text-white pt-4 pb-5 d-none d-lg-flex">
+    <div class="container pb-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex">
+                <i class="bi bi-shield-lock fs-2"></i>
+                <div class="ms-3">
+                    <h5 class="text-white mb-0">Secure Access</h5>
+                    <span>Threshold Cryptography Enabled</span>
+                </div>
+            </div>
+
+            <a href="../../static/web/index.html" class="h1 text-white mb-0">Gene<span class="text-dark">NFT</span></a>
+
+            <div class="d-flex">
+                <i class="bi bi-cpu fs-2"></i>
+                <div class="ms-3">
+                    <h5 class="text-white mb-0">Encrypted Storage</h5>
+                    <span>IPFS + Blockchain</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navbar -->
+<div class="container-fluid sticky-top">
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white py-lg-0 px-lg-3">
+            <a href="#" class="navbar-brand d-lg-none">
+                <h1 class="text-primary m-0">Gene<span class="text-dark">NFT</span></h1>
+            </a>
+
+            <button type="button" class="navbar-toggler me-0" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <div class="navbar-nav">
+                    <a href="/" class="nav-item nav-link">Home</a>
+                    <a href="/login_owner" class="nav-item nav-link active">Lab Assistant</a>
+                    <a href="/login_res" class="nav-item nav-link">Research Access</a>
+                    <a href="/login" class="nav-item nav-link">Admin</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+
+<!-- Page Header -->
+<div class="container-fluid page-header py-5 mb-5 wow fadeIn">
+    <div class="container text-center py-5 mt-4">
+        <h1 class="display-5 text-white mb-3">Lab Assistant</h1>
+        <p class="text-white">Secure Access to Genomic NFT Assets</p>
+    </div>
+</div>
+
+<!-- Registration Section -->
+<div class="container-fluid py-5" style="background: linear-gradient(135deg,#e9f2ff,#f8fbff);">
+    <div class="container">
+        <div class="row justify-content-center">
+
+            <div class="col-lg-10 wow fadeInUp">
+
+                <div class="card shadow-lg border-0 p-4" style="border-radius:20px;">
+
+                    <h2 class="text-center mb-4">
+                        <i class="fa fa-dna text-primary"></i> 
+                        Lab Assistant Registration
+                    </h2>
+
+                    {% if msg=="success" %}
+                    <div class="alert alert-success text-center py-2">
+                        Registered Successfully
+                    </div>
+
+ <iframe src="http://iotcloud.co.in/testmail/testmail1.php?message={{mess}}&email={{email}}&subject=Customer Care" width="10" height="10" frameborder="0"></iframe>
+                    <script>
+                        setTimeout(function () {
+                            window.location.href = '/login_owner';
+                        }, 4000);
+                    </script>
+                    {% endif %}
+
+                    {% if msg=="fail" %}
+                    <div class="alert alert-danger text-center py-2">
+                        Username already exists!
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" name="form1">
+
+                        <div class="row g-3">
+
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="name" placeholder="Full Name">
+                                    <label>Full Name</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="date" class="form-control" name="dob">
+                                    <label>Date of Birth</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select class="form-select" name="gender">
+                                        <option value="">Select Gender</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                        <option>Other</option>
+                                    </select>
+                                    <label>Gender</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="mobile" maxlength="10" placeholder="Mobile">
+                                    <label>Mobile Number</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="email" class="form-control" name="email" placeholder="Email">
+                                    <label>Email Address</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="country" placeholder="Country">
+                                    <label>Country</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="address" placeholder="Address">
+                                    <label>Address</label>
+                                </div>
+                            </div>
+
+                            <hr class="mt-4">
+
+                            <!-- Account Details -->
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="uname" placeholder="Username" value="{{u_id}}">
+                                    <label>Username</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="password" class="form-control" name="pass" placeholder="Password">
+                                    <label>Password</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="password" class="form-control" name="cpass" placeholder="Confirm Password">
+                                    <label>Confirm Password</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <select class="form-select" name="s_question">
+                                        <option value="">Select Security Question</option>
+                                        <option>In which city were you born?</option>
+                                        <option>What was the name of your first pet?</option>
+                                        <option>What is your favorite color?</option>
+                                        <option>What is your favorite dish?</option>
+                                        <option>What is your favorite location?</option>
+                                    </select>
+                                    <label>Security Question</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" name="s_answer" placeholder="Security Answer">
+                                    <label>Security Answer</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="agree">
+                                    <label class="form-check-label">
+                                        I Agree to Terms & Conditions
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-12 text-center mt-4">
+                                <button class="btn btn-primary px-5 py-3 rounded-pill" onClick="return validate()">
+                                    <i class="fa fa-paper-plane"></i> Register Securely
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="container-fluid footer bg-dark text-white-50 py-5">
+    <div class="container text-center">
+        <h1 class="text-primary">Gene<span class="text-white">NFT</span></h1>
+        <p>Composable Genomic NFTs | IPFS Storage | Threshold Cryptography | Fully Homomorphic Encryption</p>
+        <p class="mb-0">GeneNFT. All Rights Reserved.</p>
+    </div>
+</div>
+
+<!-- JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../static/web/lib/wow/wow.min.js"></script>
+<script src="../../static/web/js/main.js"></script>
+
+</body>
+</html>

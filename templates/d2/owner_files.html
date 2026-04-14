@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Uploaded Datasets</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+
+<style>
+body {
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#eef2f7;
+}
+
+/* Sidebar */
+.sidebar{
+    position:fixed;
+    width:230px;
+    height:100%;
+    background:linear-gradient(180deg,#0f2027,#203a43,#2c5364);
+    color:white;
+    padding-top:20px;
+}
+.sidebar h2{text-align:center;margin-bottom:30px;}
+.sidebar a{
+    display:block;color:white;padding:14px 25px;text-decoration:none;
+}
+.sidebar a:hover{background:rgba(0,180,255,0.25);padding-left:35px;}
+
+/* Main content */
+.main{
+    margin-left:230px;
+    padding:30px;
+}
+
+/* Card Grid */
+.card-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px,1fr));
+    gap:20px;
+}
+
+/* Single Dataset Card */
+.card{
+    background:white;
+    border-radius:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    padding:20px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.card:hover{
+    transform: translateY(-5px);
+    box-shadow:0 12px 25px rgba(0,0,0,0.15);
+}
+
+.card h4{
+    margin:0 0 10px;
+    color:#2c3e50;
+}
+.card p{
+    margin:5px 0;
+    font-size:14px;
+    color:#555;
+}
+.code-style{
+    font-family: monospace;
+    color:#2c9cff;
+    word-break: break-all;
+    font-size:13px;
+}
+
+.download-btn{
+    display:inline-block;
+    margin-top:10px;
+    padding:6px 12px;
+    background:#2c9cff;
+    color:white;
+    text-decoration:none;
+    border-radius:6px;
+    font-size:14px;
+    transition:0.3s;
+}
+.download-btn:hover{
+    background:#1a7fd2;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>GeneNFT</h2>
+    <a href="/owner_home">Dashboard</a>
+    <a href="/owner_upload">Upload Genome</a>
+    <a href="/owner_files">My Uploads</a>
+	<a href="/owner_earn">Earnings</a>
+	<a href="/owner_block">Integrity Verification</a>
+    <a href="/logout">Logout</a>
+</div>
+
+<div class="main">
+    <h3>My Uploaded Genome Datasets</h3>
+
+    <div class="card-grid">
+        {% for d in datasets %}
+        <div class="card">
+            <h4>{{ d.title }}</h4>
+			<p><strong>Dataset Title:</strong> {{ d.title }}</p>
+            <p><strong>Description:</strong> {{ d.description }}</p>
+            
+            <p><strong>Allowed Analysis:</strong> {{ d.allowed_analysis }}</p>
+            <p><strong>Ethnicity:</strong> {{ d.ethnicity }}</p>
+          
+            <p><strong>Price:</strong> {{ d.price }} ETH</p>
+           
+            <p><strong>NFT Token:</strong> <span class="code-style">{{ d.nft_token }}</span></p>
+           
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>

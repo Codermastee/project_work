@@ -1,0 +1,214 @@
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,#eef2f7,#e3ecff);
+}
+
+/* ===== TOP BAR ===== */
+.topbar{
+    position:fixed;
+    left:230px;
+    right:0;
+    height:70px;
+    background:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 30px;
+    box-shadow:0 3px 15px rgba(0,0,0,0.08);
+    z-index:1000;
+}
+
+.topbar h3{
+    margin:0;
+    font-weight:600;
+    color:#2c3e50;
+}
+
+.profile-menu{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.profile-name{
+    font-weight:500;
+    color:#2c3e50;
+}
+
+.logout-btn{
+    background:#ff4d4d;
+    color:white;
+    padding:8px 15px;
+    border-radius:20px;
+    text-decoration:none;
+    font-size:14px;
+    transition:.3s;
+}
+
+.logout-btn:hover{
+    background:#e60000;
+}
+
+/* ===== SIDEBAR ===== */
+/*.sidebar{
+    position:fixed;
+    width:230px;
+    height:100%;
+    background: linear-gradient(180deg,#0f2027,#203a43,#2c5364);
+    color:white;
+    padding-top:25px;
+}*/
+.sidebar{
+    position:fixed;
+    width:230px;
+    height:100%;
+    background: linear-gradient(180deg, #0f4c81, #1e6fd9, #2c9cff);
+    color:white;
+    padding-top:25px;
+    box-shadow: 5px 0 20px rgba(0,0,0,0.1);
+}
+.sidebar h2{
+    text-align:center;
+    margin-bottom:40px;
+    font-weight:600;
+}
+
+.sidebar a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:white;
+    padding:14px 25px;
+    text-decoration:none;
+    transition:.3s;
+    font-size:14px;
+}
+
+/*.sidebar a:hover{
+    background:rgba(0,180,255,0.25);
+    padding-left:35px;
+}*/
+.sidebar a:hover{
+    background: rgba(255,255,255,0.15);
+    padding-left:35px;
+    border-left:4px solid #ffffff;
+}
+.sidebar i{
+    width:18px;
+}
+
+/* ===== MAIN CONTENT ===== */
+.main{
+    margin-left:230px;
+    padding:110px 30px 40px;
+}
+
+/* ===== PROFILE HEADER ===== */
+.profile-header{
+    background:linear-gradient(120deg,#2c9cff,#6a11cb);
+    padding:35px;
+    border-radius:16px;
+    color:white;
+    box-shadow:0 10px 30px rgba(0,0,0,0.15);
+}
+
+.profile-header h2{
+    margin:0;
+}
+
+.profile-header p{
+    margin:5px 0 0;
+    opacity:0.9;
+}
+
+/* ===== INFO GRID ===== */
+.info-section{
+    margin-top:30px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 12px 25px rgba(0,0,0,0.15);
+}
+
+.card h4{
+    margin-bottom:15px;
+    color:#2c3e50;
+}
+
+.label{
+    font-size:13px;
+    color:#888;
+}
+
+.value{
+    font-weight:500;
+    margin-bottom:10px;
+}
+
+/* Wallet */
+.wallet{
+    background:#f4f9ff;
+    padding:10px;
+    border-radius:8px;
+    font-family:monospace;
+    color:#2c9cff;
+    word-break:break-all;
+}
+
+/* Badge */
+.badge{
+    display:inline-block;
+    padding:6px 12px;
+    background:#27ae60;
+    color:white;
+    border-radius:20px;
+    font-size:12px;
+}
+
+/* NFT Token Style */
+.code-style{
+    font-family:monospace;
+    color:#2c9cff;
+    word-break:break-all;
+    font-size:13px;
+    background:#f4f9ff;
+    padding:6px;
+    border-radius:6px;
+}
+
+/* ETH Price Badge */
+.price{
+    font-weight:600;
+    color:#27ae60;
+}
+
+/* NFT Badge */
+.nft-badge{
+    display:inline-block;
+    padding:5px 10px;
+    background:#6a11cb;
+    color:white;
+    font-size:12px;
+    border-radius:20px;
+    margin-bottom:10px;
+}
+/* Footer */
+.footer{
+    margin-top:40px;
+    text-align:center;
+    color:#666;
+    font-size:13px;
+}
