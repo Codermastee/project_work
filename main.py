@@ -2,9 +2,11 @@
 import os
 import base64
 import io
+import shutil
 from flask import Flask, render_template, Response, redirect, request, session, abort, url_for, jsonify
 import json
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import hashlib
 from datetime import datetime
 from datetime import date
@@ -22,6 +24,7 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 import urllib.request
 import urllib.parse
+from urllib.parse import urlparse, unquote
 import socket    
 import re
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -30,7 +33,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.fernet import Fernet
 import uuid
-import shutil
 #from Pyfhel import Pyfhel
 #pip install secretsharing
 #from secretsharing import PlaintextToHexSecretSharer
@@ -51,24 +53,85 @@ from typing import List
   database="gene_nft"
 
 )'''
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+WEB_TEMPLATES_DIR = os.path.join(TEMPLATES_DIR, "web")
+
+
+def ensure_template_structure():
+    """
+    Make deployment tolerant when HTML files were uploaded without folders.
+    If templates are in project root or templates root, copy missing files
+    into templates/web so routes like render_template('web/index.html') work.
+    """
+    os.makedirs(TEMPLATES_DIR, exist_ok=True)
+    os.makedirs(WEB_TEMPLATES_DIR, exist_ok=True)
+
+    source_dirs = [BASE_DIR, TEMPLATES_DIR, STATIC_DIR, os.path.join(STATIC_DIR, "web")]
+    for source_dir in source_dirs:
+        if not os.path.isdir(source_dir):
+            continue
+        for file_name in os.listdir(source_dir):
+            if not file_name.lower().endswith(".html"):
+                continue
+            source_path = os.path.join(source_dir, file_name)
+            if not os.path.isfile(source_path):
+                continue
+            target_path = os.path.join(WEB_TEMPLATES_DIR, file_name)
+            if not os.path.exists(target_path):
+                shutil.copy2(source_path, target_path)
+
+
+ensure_template_structure()
+
+app = Flask(__name__, template_folder=TEMPLATES_DIR, static_folder=STATIC_DIR)
 ##session key
 app.secret_key = 'abcdef'
 #######
-UPLOAD_FOLDER = 'static/upload'
+UPLOAD_FOLDER = os.path.join(STATIC_DIR, "upload")
 ALLOWED_EXTENSIONS = { 'csv'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 #####
 
+def get_db_config():
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        parsed = urlparse(database_url)
+        return {
+            "host": parsed.hostname or os.getenv("DB_HOST", "localhost"),
+            "port": parsed.port or int(os.getenv("DB_PORT", "5432")),
+            "user": unquote(parsed.username or os.getenv("DB_USER", "postgres")),
+            "password": unquote(parsed.password or os.getenv("DB_PASSWORD", "")),
+            "database": (parsed.path or "").lstrip("/") or os.getenv("DB_NAME", "gene_nft"),
+        }
+
+    return {
+        "host": os.getenv("DB_HOST", "localhost"),
+        "port": int(os.getenv("DB_PORT", "5432")),
+        "user": os.getenv("DB_USER", "postgres"),
+        "password": os.getenv("DB_PASSWORD", ""),
+        "database": os.getenv("DB_NAME", "gene_nft"),
+    }
+
+
 def get_db_connection():
-    conn = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="",
-        database="gene_nft",
-        autocommit=True
+    config = get_db_config()
+    conn = psycopg2.connect(
+        host=config["host"],
+        port=config["port"],
+        user=config["user"],
+        password=config["password"],
+        database=config["database"],
     )
+    conn.autocommit = False  # explicit commit/rollback — prevents key/sig split-brain
     return conn
+
+
+def get_db_cursor(conn, dictionary=False):
+    if dictionary:
+        return conn.cursor(cursor_factory=RealDictCursor)
+    return conn.cursor()
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -92,6 +155,8 @@ def login():
         account = cursor.fetchone()
         if account:
             session['username'] = uname
+            cursor.close()
+            conn.close()
             return redirect(url_for('admin'))
         else:
             msg = 'Incorrect username/password!'
@@ -115,6 +180,8 @@ def login_owner():
         account = cursor.fetchone()
         if account:
             session['username'] = uname
+            cursor.close()
+            conn.close()
             return redirect(url_for('owner_home'))
         else:
             msg = 'Incorrect username/password!'
@@ -139,6 +206,8 @@ def login_res():
         account = cursor.fetchone()
         if account:
             session['username'] = uname
+            cursor.close()
+            conn.close()
             return redirect(url_for('res_home'))
         else:
             msg = 'Incorrect username/password!'
@@ -856,6 +925,97 @@ def getprk(user_id):
     # Get first 64 characters
     return cleaned[:64]
 
+# ============================================================
+#  REAL RSA-PSS DIGITAL SIGNATURE HELPERS
+# ============================================================
+
+def load_private_key_pem(user_id):
+    """Load full RSA private key PEM from disk for a Lab Assistant."""
+    file_path = "static/kg/" + user_id + "_pr.txt"
+    with open(file_path, "r") as f:
+        private_pem = f.read()
+    return serialization.load_pem_private_key(private_pem.encode(), password=None)
+
+def load_public_key_pem(user_id):
+    """Load full RSA public key PEM from disk for a Lab Assistant."""
+    file_path = "static/kg/" + user_id + "_pb.txt"
+    with open(file_path, "r") as f:
+        public_pem = f.read()
+    return serialization.load_pem_public_key(public_pem.encode())
+
+def rsa_sign(private_key_obj, message: str) -> str:
+    """
+    Sign a message string with RSA-PSS (SHA-256).
+    Returns Base64-encoded signature string.
+    """
+    signature_bytes = private_key_obj.sign(
+        message.encode(),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    return base64.b64encode(signature_bytes).decode()
+
+def rsa_verify(public_key_obj, message: str, signature_b64: str) -> bool:
+    """
+    Verify an RSA-PSS signature (SHA-256).
+    Returns True if valid, False if tampered/wrong key.
+
+    PSS.AUTO is used for salt_length so the verifier accepts any valid
+    salt length — including MAX_LENGTH signatures produced during signing.
+    Using MAX_LENGTH here would require the salt to be exactly max size,
+    which silently fails if the signature was produced under different
+    conditions (different key size, library version, or platform).
+    """
+    try:
+        sig_bytes = base64.b64decode(signature_b64)
+        public_key_obj.verify(
+            sig_bytes,
+            message.encode(),
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.AUTO      # accept any valid PSS salt length
+            ),
+            hashes.SHA256()
+        )
+        return True
+    except Exception:
+        return False
+
+def get_admin_private_key():
+    """Load or auto-generate the Admin RSA-2048 key pair (stored in static/kg/admin_pr.txt)."""
+    priv_path = "static/kg/admin_pr.txt"
+    pub_path  = "static/kg/admin_pb.txt"
+    if not os.path.exists(priv_path):
+        # First run: generate admin key pair
+        adm_priv = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        adm_pub  = adm_priv.public_key()
+        with open(priv_path, "w") as f:
+            f.write(adm_priv.private_bytes(
+                serialization.Encoding.PEM,
+                serialization.PrivateFormat.PKCS8,
+                serialization.NoEncryption()
+            ).decode())
+        with open(pub_path, "w") as f:
+            f.write(adm_pub.public_bytes(
+                serialization.Encoding.PEM,
+                serialization.PublicFormat.SubjectPublicKeyInfo
+            ).decode())
+    with open(priv_path, "r") as f:
+        return serialization.load_pem_private_key(f.read().encode(), password=None)
+
+def get_admin_public_key():
+    """Return Admin RSA public key object (generates pair if missing)."""
+    get_admin_private_key()   # ensures files exist
+    with open("static/kg/admin_pb.txt", "r") as f:
+        return serialization.load_pem_public_key(f.read().encode())
+
+# ============================================================
+#  END SIGNATURE HELPERS
+# ============================================================
+
 def hybrid_encrypt_file(file_obj, public_key, save_path):
 
     #Generate AES session key
@@ -924,7 +1084,7 @@ def register():
             sql = "INSERT INTO gn_researcher(id,name,institution,domain,mobile,email,location,uname,pass,status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             val = (maxid,name,institution,domain,mobile,email,location,uname,pass1,'0')
             cursor.execute(sql, val)
-            #mydb.commit()
+            conn.commit()
             bcdata="ID:"+str(maxid)+",User ID:"+uname+", Researcher Registered"
             genenft(str(maxid),uname,bcdata,'key')
             
@@ -1020,7 +1180,7 @@ def reg_owner():
             sql = "INSERT INTO gn_owner(id,name,dob,gender,mobile,email,address,country,wallet_address,uname,pass,s_question,s_answer,rdate,rtime,public_key,pbkey,prhash,masterkey) VALUES (%s,%s,%s,%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             val = (maxid,name,dob,gender,mobile,email,address,country,wa,uname,pass1,s_question,s_answer1,rdate,rtime,public_key,pbkey,prhash,mkey)
             cursor.execute(sql, val)
-            #mydb.commit()
+            conn.commit()
 
             bcdata="ID:"+str(maxid)+",User ID:"+uname+", Wallet_address:"+wa+", Status: Data Owner Registered"
             genenft(str(maxid),uname,bcdata,'owner')
@@ -1039,8 +1199,7 @@ def reg_owner():
                     INSERT INTO gn_key_shares (id,user_id, share_index, encrypted_share, share_hash)
                     VALUES (%s,%s, %s, %s, %s)
                 """, (maxid2,s["user_id"], s["share_index"], s["encrypted_share"], s["share_hash"]))
-
-                #mydb.commit()
+                conn.commit()
                 bcdata="ID:"+str(maxid2)+",User ID:"+uname+",Share_index:"+str(s["share_index"])+",Share_hash:"+s["share_hash"]
                 genenft(str(maxid),uname,bcdata,'key')
             
@@ -1077,7 +1236,7 @@ def admin():
 def view_res():
     conn = get_db_connection()
     
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     cursor.execute("SELECT * FROM gn_researcher")
     researchers = cursor.fetchall()
 
@@ -1090,18 +1249,124 @@ def view_res():
 
 @app.route('/approve_researcher')
 def approve_researcher():
-
     rid = request.args.get("id")
     conn = get_db_connection()
     cursor = conn.cursor()
-    
-    
-    cursor.execute("update gn_researcher set status='1' where id=%s",(rid,))
-    #mydb.commit()
+    cursor.execute("update gn_researcher set status='1' where id=%s", (rid,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return redirect('/view_res')
+
+
+# ============================================================
+#  ADMIN: Dual-Approval with REAL RSA-PSS Digital Signatures
+# ============================================================
+@app.route('/admin_send_approvals', methods=['GET', 'POST'])
+def admin_send_approvals():
+    """
+    Admin co-signs file-release requests using the Admin RSA private key.
+    Before signing, the Lab Assistant's RSA-PSS signature is cryptographically
+    verified against their stored public key.
+    """
+    msg = ""
+    sig_display = ""
+    verify_detail = ""
+    uname = session.get('username', 'Admin')
+
+    conn = get_db_connection()
+    cursor = get_db_cursor(conn, dictionary=True)
+
+    if request.method == 'POST':
+        rid      = request.form.get('rid')
+
+        # ── Step 1: verify admin session ──
+        if not uname:
+            msg = "wrong_pass"
+        else:
+            # Load the request
+            cursor.execute("SELECT * FROM gn_data_requests WHERE id=%s", (rid,))
+            req = cursor.fetchone()
+
+            owner_id = req['owner_id']
+
+            # Simple acceptance: record admin name + timestamp
+            accept_timestamp   = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+            admin_accept_message = (
+                f"GENENFT_ADMIN_APPROVAL|"
+                f"RID:{rid}|"
+                f"ADMIN:{uname}|"
+                f"OWNER:{owner_id}|"
+                f"RESEARCHER:{req['researcher_id']}|"
+                f"TS:{accept_timestamp}"
+            )
+            admin_acceptance = f"{uname} | {accept_timestamp}"
+
+            try:
+                cursor.execute("""
+                    UPDATE gn_data_requests
+                    SET admin_approval     = 'Approved',
+                        admin_signature    = %s,
+                        admin_sign_message = %s,
+                        pay_st             = 2
+                    WHERE id = %s
+                """, (admin_acceptance, admin_accept_message, rid))
+                conn.commit()
+            except Exception as db_err:
+                conn.rollback()
+                print("DB commit error in admin_send_approvals:", db_err)
+                msg = "sig_fail"
+                cursor.close()
+                conn.close()
+                return render_template("admin_send_approvals.html",
+                    msg=msg, pending=[], approved_list=[], admin=uname,
+                    sig_display="", verify_detail="")
+
+            bcdata = (
+                f"ID:{rid}|Admin:{uname}|"
+                f"Accepted|"
+                f"TS:{accept_timestamp}|"
+                f"Action:ADMIN_APPROVED_FILE_RELEASED"
+            )
+            genenft(str(rid), uname, bcdata, 'admin')
+
+            sig_display   = admin_acceptance
+            verify_detail = f"Accepted by {uname}"
+            msg = "approved"
+
+    # ── Load pending (owner signed, admin not yet) ──
+    cursor.execute("""
+        SELECT r.*, d.title, d.price
+        FROM gn_data_requests r
+        JOIN gn_genomic_dataset d ON r.dataset_id = d.id
+        WHERE r.owner_signature IS NOT NULL
+          AND (r.admin_approval = 'Pending' OR r.admin_approval IS NULL)
+        ORDER BY r.id DESC
+    """)
+    pending = cursor.fetchall()
+
+    # ── Load approved history ──
+    cursor.execute("""
+        SELECT r.*, d.title, d.price
+        FROM gn_data_requests r
+        JOIN gn_genomic_dataset d ON r.dataset_id = d.id
+        WHERE r.admin_approval = 'Approved'
+        ORDER BY r.id DESC
+    """)
+    approved_list = cursor.fetchall()
 
     cursor.close()
-    conn.close()  
-    return redirect('/view_res')
+    conn.close()
+
+    return render_template(
+        "admin_send_approvals.html",
+        msg=msg,
+        pending=pending,
+        approved_list=approved_list,
+        admin=uname,
+        sig_display=sig_display,
+        verify_detail=verify_detail
+    )
 
 
 
@@ -1252,7 +1517,7 @@ def owner_upload():
 
             
             cursor.execute(query, values)
-            #mydb.commit()
+            conn.commit()
             bcdata="ID:"+str(maxid)+",User ID:"+uname+", File:"+encrypted_filename+", File Hash:"+file_hash+" , NFT Token:"+nft_token+", Status: Upload Data"
             genenft(str(maxid),uname,bcdata,'owner')
             msg="success"
@@ -1278,7 +1543,7 @@ def owner_files():
     cursor.execute('SELECT * FROM gn_owner WHERE uname = %s', (uname, ))
     data = cursor.fetchone()
 
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     
     cursor.execute("SELECT * FROM gn_genomic_dataset WHERE user_id=%s", (uname,))
     datasets = cursor.fetchall()
@@ -1405,10 +1670,11 @@ def owner_key():
         dv1=dv[0:32]
         pr_hash.append(dv1)
 
+    cursor.close()
+    conn.close()
+
     if request.method == 'POST':
         act = "done"
-        #cursor.execute("update gn_owner set key_st=1 where uname=%s",(uname,))
-        #mydb.commit()
         # mail values
         email = data1[5]
         mess = "Dear "+name+", User ID: "+uname+", Master Hash Key is: " + master_key
@@ -1614,7 +1880,7 @@ def view_owner():
     st=""
     conn = get_db_connection()
     
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     cursor.execute('SELECT * FROM gn_owner')
     data = cursor.fetchall()
 
@@ -1628,7 +1894,7 @@ def approve(id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE gn_researcher SET status='1' WHERE id=%s",(id,))
-    #mydb.commit()
+    conn.commit()
 
     cursor.close()
     conn.close()  
@@ -1642,7 +1908,7 @@ def reject(id):
     cursor = conn.cursor()
     
     cursor.execute("UPDATE gn_researcher SET status='2' WHERE id=%s",(id,))
-    #mydb.commit()
+    conn.commit()
 
     cursor.close()
     conn.close()  
@@ -1771,7 +2037,7 @@ def res_datasets():
 
     conn = get_db_connection()
      
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
 
     cursor.execute('SELECT * FROM gn_researcher WHERE uname=%s',(uname,))
     data = cursor.fetchone()
@@ -1917,7 +2183,7 @@ def send_request():
     conn = get_db_connection()
    
     
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
 
     cursor.execute("SELECT MAX(id)+1 AS next_id FROM gn_data_requests")
     row = cursor.fetchone()
@@ -1964,8 +2230,8 @@ def send_request():
         INSERT INTO gn_data_requests (id,dataset_id, owner_id, researcher_id, diseases,amount, status)
         VALUES (%s,%s, %s, %s, %s, %s,%s)
     """, (maxid,dataset_id, owner_id, researcher_id, disease,amount ,'Pending'))
+    conn.commit()
 
-   
     cursor.close()
     conn.close()  
     #return "Request Sent Successfully"
@@ -1982,7 +2248,7 @@ def owner_requests():
 
     conn = get_db_connection()
     
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     cursor.execute("SELECT * FROM gn_owner WHERE uname=%s", (uname,))
     data2 = cursor.fetchone()
     
@@ -2001,11 +2267,13 @@ def owner_requests():
     if act=="yes":
         rid=request.args.get("rid")
         cursor.execute("update gn_data_requests set status='Approved' where id=%s",(rid,))
+        conn.commit()
         msg="yes"
 
     if act=="no":
         rid=request.args.get("rid")
         cursor.execute("update gn_data_requests set status='Rejected' where id=%s",(rid,))
+        conn.commit()
         msg="no"
 
     cursor.close()
@@ -2015,66 +2283,72 @@ def owner_requests():
 
 @app.route('/owner_send', methods=['GET', 'POST'])
 def owner_send():
-    msg=""
-    act=request.args.get("act")
-    rid=request.args.get("rid")
-    uname=""
+    msg = ""
+    act = request.args.get("act")
+    rid = request.args.get("rid")
+    uname = ""
     if 'username' in session:
         uname = session['username']
 
     conn = get_db_connection()
-    
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     cursor.execute("SELECT * FROM gn_owner WHERE uname=%s", (uname,))
     data2 = cursor.fetchone()
 
-    key1 = hashlib.sha256(b"gene_nft_secret").digest()[:16]
-    
-    #print(key1)
-    query = """
-    SELECT r.*, d.title, d.price
-    FROM gn_data_requests r
-    JOIN gn_genomic_dataset d ON r.dataset_id = d.id
-    WHERE r.researcher_id = %s
-    ORDER BY r.id DESC
-    """
-    
-    cursor.execute(query, (uname,))
-    data = cursor.fetchall()
-
-    prkey=getprk(uname)
-    print("##")
-    print(prkey)
-    print("==")
-    print(key1)
-
     cursor.execute("SELECT * FROM gn_data_requests WHERE id=%s", (rid,))
     data3 = cursor.fetchone()
-    enc_vfile="f"+str(data3['dataset_id'])+"_"+str(data3['id'])+".enc"
-    vfile="f"+str(data3['dataset_id'])+"_"+str(data3['id'])+".vcf"
 
-    if request.method=='POST':
-        key=request.form['key']
+    if request.method == 'POST':
+        accepted = request.form.get('accepted', '').strip()
 
-        if len(key)>8:
-
-            if key in prkey:
-               
-                #decrypt_file("static/uploads/"+enc_vfile, "static/down/"+vfile, key1)
-                bcdata="ID:"+str(rid)+",User ID:"+uname+", Decrypt and send VCF File to Researcher"
-                genenft(str(rid),uname,bcdata,'key')
-                cursor.execute("update gn_data_requests set pay_st=2 where id=%s",(rid,))
-                msg="success"
-            else:
-                msg="wrong"
+        if not accepted:
+            msg = "missing_acceptance"
         else:
-            msg="wrong"
-  
+            try:
+                accept_timestamp = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+                accept_message = (
+                    f"GENENFT_OWNER_APPROVAL|"
+                    f"RID:{rid}|"
+                    f"OWNER:{uname}|"
+                    f"DATASET:{data3['dataset_id']}|"
+                    f"RESEARCHER:{data3['researcher_id']}|"
+                    f"TS:{accept_timestamp}"
+                )
+
+                # Simple acceptance: record owner username + timestamp
+                owner_acceptance_val = f"{uname} | {accept_timestamp}"
+
+                try:
+                    cursor.execute("""
+                        UPDATE gn_data_requests
+                        SET owner_signature    = %s,
+                            owner_sign_message = %s,
+                            admin_approval     = 'Pending'
+                        WHERE id = %s
+                    """, (owner_acceptance_val, accept_message, rid))
+                    conn.commit()
+                except Exception as db_err:
+                    conn.rollback()
+                    print("DB commit error in owner_send:", db_err)
+                    msg = "sig_fail"
+                    raise
+
+                bcdata = (
+                    f"ID:{rid},Owner:{uname},"
+                    f"Accepted|"
+                    f"TS:{accept_timestamp}|Action:OWNER_APPROVE_FILE_SEND"
+                )
+                genenft(str(rid), uname, bcdata, 'key')
+
+                msg = "success"
+
+            except Exception as e:
+                print("Acceptance error:", e)
+                msg = "sig_fail"
 
     cursor.close()
     conn.close()
-    
-    return render_template("owner_send.html",msg=msg,act=act, data=data)
+    return render_template("owner_send.html", msg=msg, act=act, sig_display="")
 
 
 @app.route('/res_purchases')
@@ -2087,7 +2361,7 @@ def res_purchases():
 
     conn = get_db_connection()
     
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     cursor.execute("SELECT * FROM gn_researcher WHERE uname=%s", (uname,))
     data2 = cursor.fetchone()
     
@@ -2120,7 +2394,7 @@ def res_pay():
 
     conn = get_db_connection()
     
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     cursor.execute("SELECT * FROM gn_researcher WHERE uname=%s", (uname,))
     data2 = cursor.fetchone()
     
@@ -2138,6 +2412,7 @@ def res_pay():
     if request.method=='POST':
         pay=request.form['pay']
         cursor.execute("update gn_data_requests set pay_st=1 where id=%s",(rid,))
+        conn.commit()
         msg="success"
   
         bcdata="ID:"+str(rid)+",Researcher ID:"+uname+", Amount Paid"
@@ -2185,7 +2460,7 @@ def res_block():
 
     conn = get_db_connection()
     
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     cursor.execute("SELECT * FROM gn_researcher WHERE uname=%s", (uname,))
     data = cursor.fetchone()
     if act=="1":
@@ -2278,7 +2553,7 @@ def owner_block():
 
     conn = get_db_connection()
     
-    cursor = conn.cursor(dictionary=True)
+    cursor = get_db_cursor(conn, dictionary=True)
     cursor.execute("SELECT * FROM gn_owner WHERE uname=%s", (uname,))
     data = cursor.fetchone()
     if act=="1":
@@ -2443,10 +2718,229 @@ def result():
 
     return render_template("result.html", result=result)
 
+# ============================================================
+#  ADMIN: Re-sign mismatched owner signatures (repair tool)
+# ============================================================
+@app.route('/admin_repair_signatures')
+def admin_repair_signatures():
+    if session.get('username') is None:
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    cursor = get_db_cursor(conn, dictionary=True)
+
+    cursor.execute("""
+        SELECT * FROM gn_data_requests
+        WHERE owner_signature IS NOT NULL
+    """)
+    rows = cursor.fetchall()
+
+    fixed  = 0
+    failed = 0
+    skipped = 0
+
+    for req in rows:
+        owner_id = req['owner_id']
+
+        try:
+            # ── Check validity against DB key (what admin verify actually uses) ──
+            cursor.execute("SELECT public_key FROM gn_owner WHERE uname=%s", (owner_id,))
+            owner_row  = cursor.fetchone()
+            db_pub_pem = owner_row['public_key'] if owner_row else None
+
+            if db_pub_pem:
+                db_pub_key    = serialization.load_pem_public_key(db_pub_pem.encode())
+                already_valid = rsa_verify(db_pub_key, req['owner_sign_message'], req['owner_signature'])
+                if already_valid:
+                    skipped += 1
+                    continue
+
+            # ── Key files exist on disk → re-sign then sync DB atomically ──
+            private_key_obj = load_private_key_pem(owner_id)   # raises FileNotFoundError if missing
+            pub_key_obj     = load_public_key_pem(owner_id)
+            pub_pem         = pub_key_obj.public_bytes(
+                serialization.Encoding.PEM,
+                serialization.PublicFormat.SubjectPublicKeyInfo
+            ).decode()
+
+            sign_timestamp   = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+            new_sign_message = (
+                f"GENENFT_OWNER_APPROVAL|"
+                f"RID:{req['id']}|"
+                f"OWNER:{owner_id}|"
+                f"DATASET:{req['dataset_id']}|"
+                f"RESEARCHER:{req['researcher_id']}|"
+                f"TS:{sign_timestamp}"
+            )
+
+            new_signature = rsa_sign(private_key_obj, new_sign_message)
+
+            # ── Verify before touching DB ──
+            if not rsa_verify(pub_key_obj, new_sign_message, new_signature):
+                raise Exception("Self-verify failed after re-signing")
+
+            # ── Atomic: public key + signature in one transaction ──
+            try:
+                cursor.execute(
+                    "UPDATE gn_owner SET public_key = %s WHERE uname = %s",
+                    (pub_pem, owner_id)
+                )
+                cursor.execute("""
+                    UPDATE gn_data_requests
+                    SET owner_signature    = %s,
+                        owner_sign_message = %s,
+                        admin_approval     = 'Pending'
+                    WHERE id = %s
+                """, (new_signature, new_sign_message, req['id']))
+                conn.commit()
+            except Exception as db_err:
+                conn.rollback()
+                raise Exception(f"DB commit failed: {db_err}")
+
+            print(f"Fixed RID {req['id']} — owner: {owner_id}")
+            fixed += 1
+
+        except FileNotFoundError:
+            # Key file missing — generate fresh pair, sync DB, re-sign, all atomic
+            try:
+                private_key_obj = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+                public_key_obj  = private_key_obj.public_key()
+
+                priv_pem = private_key_obj.private_bytes(
+                    serialization.Encoding.PEM,
+                    serialization.PrivateFormat.PKCS8,
+                    serialization.NoEncryption()
+                ).decode()
+                pub_pem = public_key_obj.public_bytes(
+                    serialization.Encoding.PEM,
+                    serialization.PublicFormat.SubjectPublicKeyInfo
+                ).decode()
+
+                # Write to disk first
+                with open(f"static/kg/{owner_id}_pr.txt", "w") as f:
+                    f.write(priv_pem)
+                with open(f"static/kg/{owner_id}_pb.txt", "w") as f:
+                    f.write(pub_pem)
+
+                sign_timestamp   = datetime.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+                new_sign_message = (
+                    f"GENENFT_OWNER_APPROVAL|"
+                    f"RID:{req['id']}|"
+                    f"OWNER:{owner_id}|"
+                    f"DATASET:{req['dataset_id']}|"
+                    f"RESEARCHER:{req['researcher_id']}|"
+                    f"TS:{sign_timestamp}"
+                )
+                new_signature = rsa_sign(private_key_obj, new_sign_message)
+
+                if not rsa_verify(public_key_obj, new_sign_message, new_signature):
+                    raise Exception("Self-verify failed after fresh key generation")
+
+                try:
+                    cursor.execute(
+                        "UPDATE gn_owner SET public_key = %s WHERE uname = %s",
+                        (pub_pem, owner_id)
+                    )
+                    cursor.execute("""
+                        UPDATE gn_data_requests
+                        SET owner_signature    = %s,
+                            owner_sign_message = %s,
+                            admin_approval     = 'Pending'
+                        WHERE id = %s
+                    """, (new_signature, new_sign_message, req['id']))
+                    conn.commit()
+                except Exception as db_err:
+                    conn.rollback()
+                    raise Exception(f"DB commit failed after key gen: {db_err}")
+
+                print(f"Generated fresh keys + fixed RID {req['id']} — owner: {owner_id}")
+                fixed += 1
+
+            except Exception as e2:
+                print(f"Key generation failed for RID {req['id']}: {e2}")
+                failed += 1
+
+        except Exception as e:
+            conn.rollback()
+            print(f"Repair failed for RID {req['id']}: {e}")
+            failed += 1
+
+    cursor.close()
+    conn.close()
+
+    return (
+        f"<h3>Repair Complete</h3>"
+        f"<p>✓ Fixed: {fixed}</p>"
+        f"<p>⟳ Already valid (skipped): {skipped}</p>"
+        f"<p>✗ Failed: {failed}</p>"
+        f"<br><a href='/admin_send_approvals'>Go to Approvals</a>"
+    )
 
 
-##
 
+
+@app.route('/debug_sig/<rid>')
+def debug_sig(rid):
+    """Temporary debug route — remove after fixing"""
+    conn = get_db_connection()
+    cursor = get_db_cursor(conn, dictionary=True)
+
+    # Get request row
+    cursor.execute("SELECT * FROM gn_data_requests WHERE id=%s", (rid,))
+    req = cursor.fetchone()
+    if not req:
+        return f"No request found for id={rid}"
+
+    owner_id      = req['owner_id']
+    owner_sig     = req['owner_signature']
+    owner_msg     = req['owner_sign_message']
+
+    # Get public key from DB
+    cursor.execute("SELECT public_key FROM gn_owner WHERE uname=%s", (owner_id,))
+    owner_row = cursor.fetchone()
+    db_pubkey = owner_row['public_key'] if owner_row else None
+
+    # Get public key from disk
+    import os
+    disk_path = f"static/kg/{owner_id}_pb.txt"
+    disk_pubkey = open(disk_path).read() if os.path.exists(disk_path) else "FILE NOT FOUND"
+
+    # Try verify with DB key
+    db_verify = False
+    db_err = ""
+    try:
+        from cryptography.hazmat.primitives import serialization as ser2
+        pk = ser2.load_pem_public_key(db_pubkey.encode())
+        db_verify = rsa_verify(pk, owner_msg, owner_sig)
+    except Exception as e:
+        db_err = str(e)
+
+    # Try verify with disk key
+    disk_verify = False
+    disk_err = ""
+    try:
+        pk2 = ser2.load_pem_public_key(disk_pubkey.encode())
+        disk_verify = rsa_verify(pk2, owner_msg, owner_sig)
+    except Exception as e:
+        disk_err = str(e)
+
+    # Keys match?
+    keys_match = (db_pubkey == disk_pubkey)
+
+    cursor.close()
+    conn.close()
+
+    return f"""
+    <h2>Debug Signature — RID {rid}</h2>
+    <b>owner_id:</b> {owner_id}<br>
+    <b>owner_sign_message:</b><br><pre>{owner_msg}</pre>
+    <b>owner_signature (first 60):</b> {owner_sig[:60] if owner_sig else 'NULL'}<br><br>
+    <b>DB public key (first 60):</b> {db_pubkey[:60] if db_pubkey else 'NULL'}<br>
+    <b>Disk public key (first 60):</b> {disk_pubkey[:60]}<br>
+    <b>Keys match (DB == Disk):</b> {keys_match}<br><br>
+    <b>Verify with DB key:</b> {db_verify} {db_err}<br>
+    <b>Verify with Disk key:</b> {disk_verify} {disk_err}<br>
+    """
 
 @app.route('/logout')
 def logout():
@@ -2458,5 +2952,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)
-
-
