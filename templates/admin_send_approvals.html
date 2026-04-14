@@ -1,0 +1,248 @@
+<html>
+<head>
+<title>GeneChain | Admin – File Release Approvals</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="../static/css/style2.css" rel="stylesheet">
+<style>
+.card{background:#fff;padding:24px;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,0.08);margin-bottom:30px;overflow-x:auto}
+.section-title{font-size:17px;font-weight:600;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.styled-table{width:100%;border-collapse:collapse;font-size:14px}
+.styled-table thead{background:#4f46e5;color:#fff}
+.styled-table th{text-align:left;padding:12px 14px;font-weight:600}
+.styled-table td{padding:12px 14px;border-bottom:1px solid #eee;vertical-align:middle}
+.styled-table tbody tr:hover{background:#f9fafb}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-pending{background:#fef3c7;color:#b45309}
+.badge-approved{background:#dcfce7;color:#15803d}
+.esig-chip{font-size:12px;background:#ecfdf5;color:#065f46;padding:4px 10px;border-radius:5px;border:1px solid #d1fae5;display:inline-block}
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:36px 40px;width:520px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.25)}
+.modal-box h3{margin:0 0 6px;font-size:18px;color:#1e293b}
+.modal-box .subtitle{margin:0 0 18px;font-size:13px;color:#64748b}
+.req-preview{background:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #4f46e5;border-radius:8px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#475569;line-height:1.8}
+.pass-row{margin-bottom:16px}
+.pass-row label{display:block;font-size:13px;color:#475569;margin-bottom:6px;font-weight:500}
+.pass-row input{width:100%;padding:10px 14px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;box-sizing:border-box}
+.pass-row input:focus{border-color:#4f46e5;outline:none;box-shadow:0 0 0 3px rgba(79,70,229,0.15)}
+.btn-approve{background:linear-gradient(90deg,#16a34a,#22c55e);color:white;border:none;padding:11px 22px;border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer;transition:0.25s;display:inline-flex;align-items:center;gap:8px}
+.btn-approve:hover{filter:brightness(0.92);transform:translateY(-1px)}
+.btn-cancel{background:none;border:1px solid #cbd5e1;color:#64748b;padding:11px 18px;border-radius:8px;font-size:14px;font-family:'Poppins',sans-serif;cursor:pointer}
+.btn-cancel:hover{background:#f1f5f9}
+.btn-trigger{background:#22c55e;color:white;border:none;padding:7px 16px;border-radius:6px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:0.2s}
+.btn-trigger:hover{background:#16a34a}
+.alert{padding:14px 18px;border-radius:8px;margin-bottom:20px;font-size:14px;display:flex;align-items:flex-start;gap:10px}
+.alert i{font-size:18px;margin-top:1px;flex-shrink:0}
+.alert-success{background:#dcfce7;border-left:4px solid #16a34a;color:#166534}
+.alert-error{background:#fee2e2;border-left:4px solid #dc2626;color:#991b1b}
+.empty{text-align:center;padding:36px;color:#94a3b8}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2><i class="fa fa-dna"></i> GeneChain</h2>
+    <a href="/admin"><i class="fa fa-chart-line"></i> Dashboard</a>
+    <a href="/view_res"><i class="fa fa-user-check"></i> Researcher Approval</a>
+    <a href="/view_owner"><i class="fa fa-users"></i> Lab Assistant</a>
+    <a href="/admin_send_approvals" style="background:rgba(255,255,255,0.15);border-left:4px solid white;padding-left:35px">
+        <i class="fa fa-file-signature"></i> Send Approvals
+    </a>
+    <a href="/view_transactions"><i class="fa fa-link"></i> Blockchain Logs</a>
+    <a href="/logout"><i class="fa fa-sign-out-alt"></i> Logout</a>
+</div>
+
+<div class="topbar">
+    <h3>File Release Approvals</h3>
+    <div class="profile-menu">
+        <span class="profile-name"><i class="fa fa-user-shield"></i> {{ admin }}</span>
+        <a href="/logout" class="logout-btn"><i class="fa fa-sign-out-alt"></i> Logout</a>
+    </div>
+</div>
+
+<div class="main">
+
+    <div class="page-title">
+        <i class="fa fa-check-double"></i> File Release Approvals
+    </div>
+
+    <!-- RESULT MESSAGES -->
+    {% if msg == "approved" %}
+    <div class="alert alert-success">
+        <i class="fa fa-check-double"></i>
+        <div>
+            <strong>Approved &amp; Released!</strong><br>
+            Your acceptance has been recorded: <strong>{{ sig_display }}</strong><br>
+            File access is now <strong>unlocked for the researcher</strong>.
+        </div>
+    </div>
+
+    {% elif msg == "wrong_pass" %}
+    <div class="alert alert-error">
+        <i class="fa fa-times-circle"></i>
+        <div><strong>Authentication Failed.</strong> Admin password incorrect — approval rejected.</div>
+    </div>
+
+    {% elif msg == "sig_fail" %}
+    <div class="alert alert-error">
+        <i class="fa fa-exclamation-triangle"></i>
+        <div><strong>Approval Failed.</strong> A database error occurred. Please try again.</div>
+    </div>
+    {% endif %}
+
+
+    <!-- PENDING TABLE -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fa fa-hourglass-half" style="color:#b45309"></i>
+            Awaiting Admin Approval
+            {% if pending %}<span class="badge badge-pending">{{ pending|length }} pending</span>{% endif %}
+        </div>
+
+        {% if pending %}
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Request ID</th><th>Dataset</th>
+                    <th>Lab Assistant</th><th>Researcher</th><th>Disease</th>
+                    <th>Lab Asst. Acceptance</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in pending %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><strong>#{{ r.id }}</strong></td>
+                <td>{{ r.title }}</td>
+                <td>{{ r.owner_id }}</td>
+                <td>{{ r.researcher_id }}</td>
+                <td>{{ r.diseases }}</td>
+                <td>
+                    <span class="esig-chip"><i class="fa fa-user-check"></i> {{ r.owner_signature[:40] if r.owner_signature else '—' }}</span>
+                    <div style="font-size:11px;color:#b45309;margin-top:4px">
+                        <i class="fa fa-clock"></i> Pending admin approval
+                    </div>
+                </td>
+                <td>
+                    <button class="btn-trigger"
+                        onclick="openModal(
+                            '{{ r.id }}',
+                            '{{ r.owner_id }}',
+                            '{{ r.researcher_id }}',
+                            '{{ r.title }}'
+                        )">
+                        <i class="fa fa-check"></i> Approve
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">
+            <i class="fa fa-inbox fa-2x" style="display:block;margin-bottom:10px;color:#cbd5e1"></i>
+            No requests awaiting approval.
+        </div>
+        {% endif %}
+    </div>
+
+
+    <!-- HISTORY TABLE -->
+    <div class="card">
+        <div class="section-title">
+            <i class="fa fa-check-double" style="color:#16a34a"></i>
+            Approved Releases (History)
+        </div>
+
+        {% if approved_list %}
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Req ID</th><th>Dataset / Researcher</th>
+                    <th>Lab Asst. Acceptance</th><th>Admin Acceptance</th><th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in approved_list %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><strong>#{{ r.id }}</strong></td>
+                <td>{{ r.title }}<br><small style="color:#94a3b8">{{ r.researcher_id }}</small></td>
+                <td>
+                    <span class="esig-chip"><i class="fa fa-user-check"></i> {{ r.owner_signature[:32] if r.owner_signature else '—' }}</span>
+                    <div style="font-size:11px;color:#16a34a;margin-top:3px"><i class="fa fa-check-circle"></i> Accepted</div>
+                </td>
+                <td>
+                    <span class="esig-chip">{{ r.admin_signature if r.admin_signature else '—' }}</span>
+                    <div style="font-size:11px;color:#16a34a;margin-top:3px"><i class="fa fa-check-circle"></i> Accepted</div>
+                </td>
+                <td><span class="badge badge-approved"><i class="fa fa-unlock"></i> Released</span></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty" style="padding:20px">No approved releases yet.</div>
+        {% endif %}
+    </div>
+
+    <div class="footer">GeneChain | Privacy-Preserving Genomic Data Marketplace</div>
+</div>
+
+
+<!-- APPROVAL MODAL -->
+<div class="modal-overlay" id="approvalModal">
+    <div class="modal-box">
+        <h3><i class="fa fa-check-circle" style="color:#16a34a"></i> Approve File Release</h3>
+        <p class="subtitle">Review the request details below and confirm your approval. Your username and timestamp will be recorded.</p>
+
+        <div class="req-preview" id="modal_preview">
+            <!-- filled by JS -->
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px 16px;margin-bottom:20px">
+            <input type="checkbox" id="admin_confirm_check" style="width:18px;height:18px;accent-color:#16a34a;cursor:pointer;flex-shrink:0"
+                   onchange="document.getElementById('modal_confirm_btn').disabled = !this.checked">
+            <label for="admin_confirm_check" style="font-size:13px;color:#166534;font-weight:500;cursor:pointer">
+                I confirm I have reviewed this request and approve the file release.
+            </label>
+        </div>
+
+        <form method="POST" action="/admin_send_approvals">
+            <input type="hidden" name="rid" id="modal_rid">
+            <input type="hidden" name="adm_pass" value="accepted">
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button type="submit" class="btn-approve" id="modal_confirm_btn" disabled>
+                    <i class="fa fa-check"></i> Confirm Approval
+                </button>
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openModal(rid, owner, researcher, title) {
+    document.getElementById('modal_rid').value = rid;
+    document.getElementById('modal_preview').innerHTML =
+        '<strong>Request:</strong> #' + rid + ' &nbsp;|&nbsp; <strong>Dataset:</strong> ' + title + '<br>' +
+        '<strong>Lab Assistant:</strong> ' + owner + ' &nbsp;|&nbsp; <strong>Researcher:</strong> ' + researcher;
+    document.getElementById('admin_confirm_check').checked = false;
+    document.getElementById('modal_confirm_btn').disabled = true;
+    document.getElementById('approvalModal').classList.add('open');
+}
+function closeModal() {
+    document.getElementById('approvalModal').classList.remove('open');
+    document.getElementById('admin_confirm_check').checked = false;
+    document.getElementById('modal_confirm_btn').disabled = true;
+}
+document.getElementById('approvalModal').addEventListener('click', function(e){
+    if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
